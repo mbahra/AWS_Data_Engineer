@@ -10,7 +10,7 @@ previousWeekDate = previousWeek.strftime('%Y-%m-%d')
 querystring = {"league":"39", "season":"2020", "from":previousWeekDate, "to":todayDate}
 
 headers = {
-    'x-rapidapi-key': "2f1079b310msh26b45cbbee9f514p1d4c4djsn892ddccb9193",
+    'x-rapidapi-key': "XXX",
     'x-rapidapi-host': "api-football-beta.p.rapidapi.com"
     }
 
