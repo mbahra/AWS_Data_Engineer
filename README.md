@@ -35,10 +35,13 @@ All this part is available on https://realpython.com/python-boto3-aws-s3/.
 Install the Boto3 SDK on your computer with the following command in your terminal :
 $ pip install boto3
 
-To make it run against your AWS account, you’ll need to provide some valid credentials.
-If you already have an IAM user that has full permissions to S3, you can use those user’s credentials (their access key and their secret access key) without needing to create a new user.
-Otherwise, the easiest way to do this is to create a new AWS user and then store the new credentials.
+To make it run against your AWS account, you’ll need to provide some valid credentials. If you already have an IAM user that has full permissions to S3, you can use those user’s credentials (their access key and their secret access key) without needing to create a new user. Otherwise, the easiest way to do this is to create a new AWS user and then store the new credentials.
 
+To create a new user, go to your AWS account, then go to Services and select IAM. Then choose Users and click on Add user.
+
+Give the user a name (for example, boto3user). Enable programmatic access. This will ensure that this user will be able to work with any AWS supported SDK or make separate API calls:
+
+![](images/AWS_IAM_AddUser.png)
 
 ## Data
 
