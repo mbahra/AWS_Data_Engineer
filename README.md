@@ -39,9 +39,28 @@ To make it run against your AWS account, you’ll need to provide some valid cre
 
 To create a new user, go to your AWS account, then go to Services and select IAM. Then choose Users and click on Add user.
 
-Give the user a name (for example, boto3user). Enable programmatic access. This will ensure that this user will be able to work with any AWS supported SDK or make separate API calls:
+Give the user a name (for example, boto3user). Enable programmatic access. This will ensure that this user will be able to work with any AWS supported SDK or make separate API calls.
 
-![](images/AWS_IAM_AddUser.png)
+![](images/AWS_IAM_AddUser_1.PNG)
+
+To keep things simple, choose the preconfigured AmazonS3FullAccess policy. With this policy, the new user will be able to have full control over S3.
+
+![](images/AWS_IAM_AddUser_2.PNG)
+
+Skip this third screen:
+
+![](images/AWS_IAM_AddUser_3.PNG)
+
+Click on Create User (Créer un utilisateur).
+
+![](images/AWS_IAM_AddUser_4.PNG)
+
+A new screen will show you the user’s generated credentials. Click on the Download .csv button to make a copy of the credentials. You will need them to complete your setup.
+
+Now that you have your new user, create a new file, ~/.aws/credentials:
+'''shell
+$ touch ~/.aws/credentials
+'''
 
 ## Data
 
