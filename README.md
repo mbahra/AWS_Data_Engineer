@@ -28,12 +28,15 @@ https://console.aws.amazon.com/billing/.
 Under Preferences in the navigation pane, choose Billing preferences.
 Under Cost Management Preferences, select Receive AWS Free Tier Usage Alerts to opt in to Free Tier usage alerts. To opt out, clear the Receive AWS Free Tier Usage Alerts check box.
 
+
 ## Installation
 
-All this part is available on https://realpython.com/python-boto3-aws-s3/.
+This part is written using https://realpython.com/python-boto3-aws-s3/ and AWS ressources.
 
-Install the Boto3 SDK on your computer with the following command in your terminal :
+Install the Boto3 SDK on your computer with the following command:
+```shell
 $ pip install boto3
+```
 
 To make it run against your AWS account, you’ll need to provide some valid credentials. If you already have an IAM user that has full permissions to S3, you can use those user’s credentials (their access key and their secret access key) without needing to create a new user. Otherwise, the easiest way to do this is to create a new AWS user and then store the new credentials.
 
@@ -57,10 +60,15 @@ Click on Create User (Créer un utilisateur).
 
 A new screen will show you the user’s generated credentials. Click on the Download .csv button to make a copy of the credentials. You will need them to complete your setup.
 
-Now that you have your new user, create a new file, ~/.aws/credentials:
+Install the AWS CLI version 2 if you haven't installed yet. Because I'm working on Windows, I can install it on https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2-windows.html.
+
+Now that you have your new user and enable the AWS CLI version 2, run the following command to complete your setup:
 ```shell
-$ touch ~/.aws/credentials
+$ aws configure
 ```
+Fill in the requested information with the corresponding values from your csv file.
+For the Default region name, select your region with https://docs.aws.amazon.com/fr_fr/general/latest/gr/rande.html#s3_region. In my case, I am using eu-west-3 (Paris).
+For the default output format, select json. You can see the different formats at https://docs.aws.amazon.com/fr_fr/cli/latest/userguide/cli-configure-quickstart.html#cli-configure-quickstart-config.
 
 ## Data
 
