@@ -58,9 +58,9 @@ Click on Create User (Créer un utilisateur).
 A new screen will show you the user’s generated credentials. Click on the Download .csv button to make a copy of the credentials. You will need them to complete your setup.
 
 Now that you have your new user, create a new file, ~/.aws/credentials:
-'''shell
+```shell
 $ touch ~/.aws/credentials
-'''
+```
 
 ## Data
 
