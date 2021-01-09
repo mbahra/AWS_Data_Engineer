@@ -42,6 +42,7 @@ def statisticsRequest(fixtureId):
 
 #! add S3 connexion
 
+#! construct the filename with an uuid prefix to avoid partition issue
 def upload_file(file_name, bucket, object_name=None):
     """Upload a file to an S3 bucket
 
