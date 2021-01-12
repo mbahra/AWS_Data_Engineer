@@ -6,6 +6,7 @@ import time
 import logging
 import boto3
 from botocore.exceptions import ClientError
+import uuid
 
 todayDate = datetime.datetime.today().strftime('%Y-%m-%d')
 previousWeekDate = (datetime.datetime.today() - datetime.timedelta(days=7)).strftime('%Y-%m-%d')
@@ -40,43 +41,24 @@ def statisticsRequest(fixtureId):
 
     return response.json()
 
-#! add S3 connexion
-
-#! construct the filename with an uuid prefix to avoid partition issue
-def upload_file(file_name, bucket, object_name=None):
-    """Upload a file to an S3 bucket
-
-    :param file_name: File to upload
-    :param bucket: Bucket to upload to
-    :param object_name: S3 object name. If not specified then file_name is used
-    :return: True if file was uploaded, else False
-    """
-
-    if object_name is None:
-        object_name = file_name
-
-    s3_client = boto3.client('s3')
-    try:
-        response = s3_client.upload_file(file_name, bucket, object_name)
-    except ClientError as e:
-        logging.error(e)
-        return False
-    return True
-
 def apiFootballRequest():
 
-    #! connexion to S3 bucket
+    s3_client = boto3.client('s3')
+    bucket = "XXX"    # specify your bucket's name in place of "XXX"
 
     fixturesJson = fixturesRequest()
-    fixturesJsonName = "fixturesJson_" + todayDate
-    upload_file(fixturesJson, bucket, fixturesJsonName) #! specify your bucket's name
+    data = json.dumps(fixturesJson).encode('UTF-8')
+    fixturesJsonName = ''.join([str(uuid.uuid4().hex[:6]), "-fixturesJson-" + todayDate])   #! specify that is a global variable?
+    s3_client.put_object(Body=data, Bucket=bucket, Key=fixturesJsonName)
 
-    for fixtureId in fixturesJson:  #! write with the correct json syntax
+    for fixture in fixturesJson['response']:  #! write with the correct json syntax
+        fixtureId = fixture['fixture']['id']
         statistiscsJson = statisticsRequest(fixtureId)
-        statistiscsJsonName = "statiscsJson_" + fixtureId
-        upload_file(statistiscsJson, bucket, statistiscsJsonName)   #! specify your bucket's name
+        data = json.dumps(fixturesJson).encode('UTF-8')
+        statistiscsJsonName = ''.join([str(uuid.uuid4().hex[:6]), "-statiscsJson-" + str(fixtureId)])   # construction of the filename with an uuid prefix to avoid partition issue
+        s3_client.put_object(Body=data, Bucket=bucket, Key=statistiscsJsonName)
 
-schedule.every.tuesday.at("08:00").do(apiFootballRequest)
+schedule.every().tuesday.at("08:00").do(apiFootballRequest)
 
 while True:
     schedule.run_pending()
