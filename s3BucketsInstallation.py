@@ -16,10 +16,18 @@ def createBucket(bucketPrefix, s3Connection):
         CreateBucketConfiguration={
         'LocationConstraint': currentRegion})
     print("S3 bucket created:", bucketName, currentRegion)
-    return bucketResponse
+    return bucketResponse, bucketName
 
-s3_client = boto3.client('s3')
+def main():
 
-rawDataBucket = createBucket("raw-data-", s3_client)
+    s3_client = boto3.client('s3')
 
-processedDataBucket = createBucket("processed-data-", s3_client)
+    rawDataBucket, rawDataBucketName = createBucket("raw-data-", s3_client)
+    processedDataBucket, processedDataBucket = createBucket("processed-data-", s3_client)
+
+    s3_client.upload_file('teamcodes.csv', rawDataBucketName, 'teamcodes.csv')
+    print("teamcodes.csv uploaded into", rawDataBucketName)
+
+
+if __name__ == '__main__':
+    main()

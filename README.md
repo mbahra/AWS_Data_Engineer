@@ -73,7 +73,7 @@ For the default output format, select json. You can see the different formats at
 ## Data
 
 To handle the three existing data type, I will use:
-- Structured data: a csv file containing the city of each club
+- Structured data: a csv file containing the team code (abbreviation) of each club
 - Semi-structured data: json data from API-Football
 - Unstructured data: tweets from the Twitter API
 
@@ -82,6 +82,9 @@ To handle the two existing ingestion modes, data will be ingest by:
 - Real-time processing (streaming): tweets from Twitter API
 
 ### CSV file
+
+To get some tweets about our fixtures, we need the team code of each team.
+For that, I made a csv file using team codes provided on https://liaison.reuters.com/tools/sports-team-codes.
 
 Link of the csv file
 
