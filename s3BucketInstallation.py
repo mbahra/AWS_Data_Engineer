@@ -22,11 +22,10 @@ def main():
 
     s3_client = boto3.client('s3')
 
-    rawDataBucket, rawDataBucketName = createBucket("raw-data-", s3_client)
-    processedDataBucket, processedDataBucket = createBucket("processed-data-", s3_client)
+    dataLakeBucket, dataLakeBucketName = createBucket("data-lake-", s3_client)
 
-    s3_client.upload_file('teamcodes.csv', rawDataBucketName, 'teamcodes.csv')
-    print("teamcodes.csv uploaded into", rawDataBucketName)
+    s3_client.upload_file('teamcodes.csv', dataLakeBucketName, 'raw-data/teamcodes.csv')
+    print("teamcodes.csv uploaded into " + dataLakeBucketName + "/raw-data/")
 
 
 if __name__ == '__main__':

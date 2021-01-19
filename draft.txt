@@ -1,0 +1,30 @@
+Tables:
+Teams(idTeam, position, names, teamCodes, played, won, drawn, lost, GF, GA, GD, xGF, xGA, xGD, sentAVG, points)
+Fixtures(idFixtures, status, date, hour, idHomeTeam, idAwayTeam, goalsHomeTeam, goalsAwayTeam, xGHomeTeam, xGAwayTeam, sentimentHomeTeam, sentimentAwayTeam)
+
+Done:
+- Data lake bucket creation (S3, lambda)
+- Teamcodes.csv upload to raw-data folder (S3, lambda)
+- APIFootball requests (S3, lambda)
+
+To do:
+- Convert APIFootball json files to teams and fixtures csv files (S3, lambda)
+- Twitter requests (S3, lambda)
+- Tweets sentiment analysis and send the results to raw-data folder
+- convert raw-data files to csv and put them into teams and fixtures csv files (Glue, S3)
+- Create the database
+- Create a ranking visualization
+
+Convert APIFootball json files to teams and fixtures csv files (S3, lambda)
+
+Trigger a lambda function when a new file is uploaded into our S3 bucket's "raw-data" folder.
+
+3 possible files :
+- 1 json file for the next fixtures
+- 1 json file for the previous fixtures
+- Multiple json files for previous fixtures (1 per previous fixture)
+
+rawDataToCsv.py
+
+data for next week fixtures :
+(idFixtures, status, date, hour, idHomeTeam, idAwayTeam)

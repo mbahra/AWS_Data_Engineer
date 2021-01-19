@@ -8,7 +8,6 @@ import boto3
 from botocore.exceptions import ClientError
 import uuid
 
-#! handle request errors
 def fixturesRequest(startDate, endDate):
 
     url = "https://api-football-beta.p.rapidapi.com/fixtures"
@@ -24,17 +23,18 @@ def fixturesRequest(startDate, endDate):
 
     return response.json()
 
-#! handle request errors
 def statisticsRequest(fixtureId):
 
-    url = "https://api-football-beta.p.rapidapi.com/fixtures/statistics/fixture/" + fixtureId + "/"
+    url = "https://api-football-beta.p.rapidapi.com/fixtures/statistics"
 
     headers = {
     'x-rapidapi-key': "XXX", # Replace XXX by your API key
     'x-rapidapi-host': "api-football-beta.p.rapidapi.com"
     }
 
-    response = requests.request("GET", url, headers=headers)
+    querystring = {"fixture":fixtureId}
+
+    response = requests.request("GET", url, headers=headers, params=querystring)
 
     return response.json()
 
@@ -48,25 +48,25 @@ def main():
     todayDate = datetime.datetime.today().strftime('%Y-%m-%d')
     nextWeekDate = (datetime.datetime.today() + datetime.timedelta(days=6)).strftime('%Y-%m-%d')
 
-    # Get a json file with all the next week's fixtures and put it into the "raw data" S3 bucket
+    # Get a json file with all the next week's fixtures and put it into our S3 bucket's "raw data" folder
     nextWeekFixturesJson = fixturesRequest(todayDate, nextWeekDate)
     data = json.dumps(nextWeekFixturesJson).encode('UTF-8')
-    nextWeekFixturesJsonName = ''.join([str(uuid.uuid4().hex[:6]), "-nextWeekFixturesJson-" + todayDate])
-    s3_client.put_object(Body=data, Bucket=bucket, Key=nextWeekFixturesJsonName)
+    nextWeekFixturesJsonKey = ''.join(['raw-data/', str(uuid.uuid4().hex[:6]), "-nextWeekFixturesJson-", todayDate])
+    s3_client.put_object(Body=data, Bucket=bucket, Key=nextWeekFixturesJsonKey)
 
-    # Get a json file with all the last week's fixtures and put it into the "raw data" S3 bucket
+    # Get a json file with all the last week's fixtures and put it into our S3 bucket's "raw data" folder
     lastWeekFixturesJson = fixturesRequest(previousWeekDate, yesterdayDate)
     data = json.dumps(lastWeekFixturesJson).encode('UTF-8')
-    lastWeekFixturesJsonName = ''.join([str(uuid.uuid4().hex[:6]), "-lastWeekFixturesJson-" + todayDate])
-    s3_client.put_object(Body=data, Bucket=bucket, Key=lastWeekFixturesJsonName)
+    lastWeekFixturesJsonKey = ''.join(['raw-data/', str(uuid.uuid4().hex[:6]), "-lastWeekFixturesJson-", todayDate])
+    s3_client.put_object(Body=data, Bucket=bucket, Key=lastWeekFixturesJsonKey)
 
-    # Get a json file of statistics per last week's fixture and put them into the "raw data" S3 bucket
+    # Get a json file of statistics per last week's fixture and put them into our S3 bucket's "raw data" folder
     for fixture in lastWeekFixturesJson['response']:
         fixtureId = fixture['fixture']['id']
         statistiscsJson = statisticsRequest(fixtureId)
         data = json.dumps(fixturesJson).encode('UTF-8')
-        statistiscsJsonName = ''.join([str(uuid.uuid4().hex[:6]), "-statiscsJson-" + str(fixtureId)])   # construction of the filename with an uuid prefix to avoid partition issue
-        s3_client.put_object(Body=data, Bucket=bucket, Key=statistiscsJsonName)
+        statistiscsJsonKey = ''.join(['raw-data/', str(uuid.uuid4().hex[:6]), "-statiscsJson-", str(fixtureId)])   # construction of the filename with an uuid prefix to avoid partition issue
+        s3_client.put_object(Body=data, Bucket=bucket, Key=statistiscsJsonKey)
 
 if __name__ == '__main__':
 

@@ -1,0 +1,493 @@
+{
+    "get": "fixtures",
+    "parameters": {
+        "league": "39",
+        "from": "2021-01-19",
+        "to": "2021-01-25",
+        "season": "2020"
+    },
+    "errors": [],
+    "results": 7,
+    "paging": {
+        "current": 1,
+        "total": 1
+    },
+    "response": [
+        {
+            "fixture": {
+                "id": 592145,
+                "referee": null,
+                "timezone": "UTC",
+                "date": "2021-01-20T18:00:00+00:00",
+                "timestamp": 1611165600,
+                "periods": {
+                    "first": null,
+                    "second": null
+                },
+                "venue": {
+                    "id": 555,
+                    "name": "Etihad Stadium",
+                    "city": "Manchester"
+                },
+                "status": {
+                    "long": "Not Started",
+                    "short": "NS",
+                    "elapsed": null
+                }
+            },
+            "league": {
+                "id": 39,
+                "name": "Premier League",
+                "country": "England",
+                "logo": "https://media.api-sports.io/football/leagues/39.png",
+                "flag": "https://media.api-sports.io/flags/gb.svg",
+                "season": 2020,
+                "round": "Regular Season - 18"
+            },
+            "teams": {
+                "home": {
+                    "id": 50,
+                    "name": "Manchester City",
+                    "logo": "https://media.api-sports.io/football/teams/50.png",
+                    "winner": null
+                },
+                "away": {
+                    "id": 66,
+                    "name": "Aston Villa",
+                    "logo": "https://media.api-sports.io/football/teams/66.png",
+                    "winner": null
+                }
+            },
+            "goals": {
+                "home": null,
+                "away": null
+            },
+            "score": {
+                "halftime": {
+                    "home": null,
+                    "away": null
+                },
+                "fulltime": {
+                    "home": null,
+                    "away": null
+                },
+                "extratime": {
+                    "home": null,
+                    "away": null
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 592241,
+                "referee": null,
+                "timezone": "UTC",
+                "date": "2021-01-23T20:00:00+00:00",
+                "timestamp": 1611432000,
+                "periods": {
+                    "first": null,
+                    "second": null
+                },
+                "venue": {
+                    "id": 495,
+                    "name": "Villa Park",
+                    "city": "Birmingham"
+                },
+                "status": {
+                    "long": "Not Started",
+                    "short": "NS",
+                    "elapsed": null
+                }
+            },
+            "league": {
+                "id": 39,
+                "name": "Premier League",
+                "country": "England",
+                "logo": "https://media.api-sports.io/football/leagues/39.png",
+                "flag": "https://media.api-sports.io/flags/gb.svg",
+                "season": 2020,
+                "round": "Regular Season - 11"
+            },
+            "teams": {
+                "home": {
+                    "id": 66,
+                    "name": "Aston Villa",
+                    "logo": "https://media.api-sports.io/football/teams/66.png",
+                    "winner": null
+                },
+                "away": {
+                    "id": 34,
+                    "name": "Newcastle",
+                    "logo": "https://media.api-sports.io/football/teams/34.png",
+                    "winner": null
+                }
+            },
+            "goals": {
+                "home": null,
+                "away": null
+            },
+            "score": {
+                "halftime": {
+                    "home": null,
+                    "away": null
+                },
+                "fulltime": {
+                    "home": null,
+                    "away": null
+                },
+                "extratime": {
+                    "home": null,
+                    "away": null
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 592313,
+                "referee": null,
+                "timezone": "UTC",
+                "date": "2021-01-20T20:15:00+00:00",
+                "timestamp": 1611173700,
+                "periods": {
+                    "first": null,
+                    "second": null
+                },
+                "venue": {
+                    "id": 535,
+                    "name": "Craven Cottage",
+                    "city": "London"
+                },
+                "status": {
+                    "long": "Not Started",
+                    "short": "NS",
+                    "elapsed": null
+                }
+            },
+            "league": {
+                "id": 39,
+                "name": "Premier League",
+                "country": "England",
+                "logo": "https://media.api-sports.io/football/leagues/39.png",
+                "flag": "https://media.api-sports.io/flags/gb.svg",
+                "season": 2020,
+                "round": "Regular Season - 18"
+            },
+            "teams": {
+                "home": {
+                    "id": 36,
+                    "name": "Fulham",
+                    "logo": "https://media.api-sports.io/football/teams/36.png",
+                    "winner": null
+                },
+                "away": {
+                    "id": 33,
+                    "name": "Manchester United",
+                    "logo": "https://media.api-sports.io/football/teams/33.png",
+                    "winner": null
+                }
+            },
+            "goals": {
+                "home": null,
+                "away": null
+            },
+            "score": {
+                "halftime": {
+                    "home": null,
+                    "away": null
+                },
+                "fulltime": {
+                    "home": null,
+                    "away": null
+                },
+                "extratime": {
+                    "home": null,
+                    "away": null
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 592314,
+                "referee": null,
+                "timezone": "UTC",
+                "date": "2021-01-20T18:00:00+00:00",
+                "timestamp": 1611165600,
+                "periods": {
+                    "first": null,
+                    "second": null
+                },
+                "venue": {
+                    "id": 546,
+                    "name": "Elland Road",
+                    "city": "Leeds, West Yorkshire"
+                },
+                "status": {
+                    "long": "Match Postponed",
+                    "short": "PST",
+                    "elapsed": null
+                }
+            },
+            "league": {
+                "id": 39,
+                "name": "Premier League",
+                "country": "England",
+                "logo": "https://media.api-sports.io/football/leagues/39.png",
+                "flag": "https://media.api-sports.io/flags/gb.svg",
+                "season": 2020,
+                "round": "Regular Season - 18"
+            },
+            "teams": {
+                "home": {
+                    "id": 63,
+                    "name": "Leeds",
+                    "logo": "https://media.api-sports.io/football/teams/63.png",
+                    "winner": null
+                },
+                "away": {
+                    "id": 41,
+                    "name": "Southampton",
+                    "logo": "https://media.api-sports.io/football/teams/41.png",
+                    "winner": null
+                }
+            },
+            "goals": {
+                "home": null,
+                "away": null
+            },
+            "score": {
+                "halftime": {
+                    "home": null,
+                    "away": null
+                },
+                "fulltime": {
+                    "home": null,
+                    "away": null
+                },
+                "extratime": {
+                    "home": null,
+                    "away": null
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 592315,
+                "referee": null,
+                "timezone": "UTC",
+                "date": "2021-01-19T20:15:00+00:00",
+                "timestamp": 1611087300,
+                "periods": {
+                    "first": null,
+                    "second": null
+                },
+                "venue": {
+                    "id": 547,
+                    "name": "King Power Stadium",
+                    "city": "Leicester, Leicestershire"
+                },
+                "status": {
+                    "long": "Not Started",
+                    "short": "NS",
+                    "elapsed": null
+                }
+            },
+            "league": {
+                "id": 39,
+                "name": "Premier League",
+                "country": "England",
+                "logo": "https://media.api-sports.io/football/leagues/39.png",
+                "flag": "https://media.api-sports.io/flags/gb.svg",
+                "season": 2020,
+                "round": "Regular Season - 18"
+            },
+            "teams": {
+                "home": {
+                    "id": 46,
+                    "name": "Leicester",
+                    "logo": "https://media.api-sports.io/football/teams/46.png",
+                    "winner": null
+                },
+                "away": {
+                    "id": 49,
+                    "name": "Chelsea",
+                    "logo": "https://media.api-sports.io/football/teams/49.png",
+                    "winner": null
+                }
+            },
+            "goals": {
+                "home": null,
+                "away": null
+            },
+            "score": {
+                "halftime": {
+                    "home": null,
+                    "away": null
+                },
+                "fulltime": {
+                    "home": null,
+                    "away": null
+                },
+                "extratime": {
+                    "home": null,
+                    "away": null
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 592317,
+                "referee": null,
+                "timezone": "UTC",
+                "date": "2021-01-19T18:00:00+00:00",
+                "timestamp": 1611079200,
+                "periods": {
+                    "first": null,
+                    "second": null
+                },
+                "venue": {
+                    "id": 598,
+                    "name": "London Stadium",
+                    "city": "London"
+                },
+                "status": {
+                    "long": "Not Started",
+                    "short": "NS",
+                    "elapsed": null
+                }
+            },
+            "league": {
+                "id": 39,
+                "name": "Premier League",
+                "country": "England",
+                "logo": "https://media.api-sports.io/football/leagues/39.png",
+                "flag": "https://media.api-sports.io/flags/gb.svg",
+                "season": 2020,
+                "round": "Regular Season - 18"
+            },
+            "teams": {
+                "home": {
+                    "id": 48,
+                    "name": "West Ham",
+                    "logo": "https://media.api-sports.io/football/teams/48.png",
+                    "winner": null
+                },
+                "away": {
+                    "id": 60,
+                    "name": "West Brom",
+                    "logo": "https://media.api-sports.io/football/teams/60.png",
+                    "winner": null
+                }
+            },
+            "goals": {
+                "home": null,
+                "away": null
+            },
+            "score": {
+                "halftime": {
+                    "home": null,
+                    "away": null
+                },
+                "fulltime": {
+                    "home": null,
+                    "away": null
+                },
+                "extratime": {
+                    "home": null,
+                    "away": null
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 592319,
+                "referee": null,
+                "timezone": "UTC",
+                "date": "2021-01-21T20:00:00+00:00",
+                "timestamp": 1611259200,
+                "periods": {
+                    "first": null,
+                    "second": null
+                },
+                "venue": {
+                    "id": 550,
+                    "name": "Anfield",
+                    "city": "Liverpool"
+                },
+                "status": {
+                    "long": "Not Started",
+                    "short": "NS",
+                    "elapsed": null
+                }
+            },
+            "league": {
+                "id": 39,
+                "name": "Premier League",
+                "country": "England",
+                "logo": "https://media.api-sports.io/football/leagues/39.png",
+                "flag": "https://media.api-sports.io/flags/gb.svg",
+                "season": 2020,
+                "round": "Regular Season - 18"
+            },
+            "teams": {
+                "home": {
+                    "id": 40,
+                    "name": "Liverpool",
+                    "logo": "https://media.api-sports.io/football/teams/40.png",
+                    "winner": null
+                },
+                "away": {
+                    "id": 44,
+                    "name": "Burnley",
+                    "logo": "https://media.api-sports.io/football/teams/44.png",
+                    "winner": null
+                }
+            },
+            "goals": {
+                "home": null,
+                "away": null
+            },
+            "score": {
+                "halftime": {
+                    "home": null,
+                    "away": null
+                },
+                "fulltime": {
+                    "home": null,
+                    "away": null
+                },
+                "extratime": {
+                    "home": null,
+                    "away": null
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        }
+    ]
+}
