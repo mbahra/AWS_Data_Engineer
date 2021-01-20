@@ -1,4 +1,4 @@
-# data_engineer_project
+# data_engineer_project (in progress)
 A simple data engineer project to implement some skills
 
 ## Project's purpose
@@ -8,102 +8,76 @@ For this project I will only use cloud services, especially AWS ones.
 
 For the context, let's imagine that we are in a company which wants to understand what makes football fixtures attractive.
 
-To do this, we will create our datalake, where we will store and process all of our data.
+For this project I will create a datalake, where I will store and process data.
 
 To avoid costs and because my purpose is focused on the engineering part, the analysis part will be very restricted.
-It will consist in observing the correlation between some basic stats (goals, shots, etc) and the attractiveness of a match based on a sentimental analysis of tweets.
+It will consist in observing the correlation between some basic stats (goals, shots, etc.) and the attractiveness of a match based on a sentimental analysis of tweets.
 I will focus on english Barclays Premier League, considering all the teams and matchweeks for the current season (2020/2021).
 
-## AWS account
+## Prerequisites
 
-To begin, we have to create an AWS account at this link :
-https://portal.aws.amazon.com/billing/signup#/start
+If you want to run this project by yourself, these are the prerequisites:
 
-Pay attention to the pricing conditions. The AWS Free Tier conditions are provided here :
-https://aws.amazon.com/free/?nc1=h_ls&all-free-tier.sort-by=item.additionalFields.SortRank&all-free-tier.sort-order=asc
+- Python 3: https://www.python.org/downloads/
 
-We can opt in to or out of the AWS Free Tier usage alerts through the Billing and Cost Management console.
-Sign in to the AWS Management Console and open the Billing and Cost Management console at
-https://console.aws.amazon.com/billing/.
-Under Preferences in the navigation pane, choose Billing preferences.
-Under Cost Management Preferences, select Receive AWS Free Tier Usage Alerts to opt in to Free Tier usage alerts. To opt out, clear the Receive AWS Free Tier Usage Alerts check box.
+- Pandas library: https://pandas.pydata.org/pandas-docs/stable/getting_started/install.html
 
+- Schedule library:
+```shell
+$ pip install schedule
+```
 
-## Installation
+- Requests library:
+```shell
+$ pip install requests
+```
 
-This part is written using https://realpython.com/python-boto3-aws-s3/ and AWS ressources.
+- An AWS account: https://portal.aws.amazon.com/billing/signup#/start
 
-Install the Boto3 SDK on your computer with the following command:
+- AWS CLI version 2: https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html
+
+- Boto3 SDK:
 ```shell
 $ pip install boto3
 ```
 
-To make it run against your AWS account, you’ll need to provide some valid credentials. If you already have an IAM user that has full permissions to S3, you can use those user’s credentials (their access key and their secret access key) without needing to create a new user. Otherwise, the easiest way to do this is to create a new AWS user and then store the new credentials.
+- A RapidAPI account and key: https://rapidapi.com/marketplace
 
-To create a new user, go to your AWS account, then go to Services and select IAM. Then choose Users and click on Add user.
+- A Twitter account and an access to the Twitter API v2 Early Access:
+https://developer.twitter.com/en/products/twitter-api/early-access
+https://developer.twitter.com/en/docs/twitter-api/getting-started/guide
 
-Give the user a name (for example, boto3user). Enable programmatic access. This will ensure that this user will be able to work with any AWS supported SDK or make separate API calls.
+## AWS Free Tier usage alerts
 
-![](images/AWS_IAM_AddUser_1.PNG)
+Pay attention to the pricing conditions. The AWS Free Tier conditions are provided here :
+https://aws.amazon.com/free/?nc1=h_ls&all-free-tier.sort-by=item.additionalFields.SortRank&all-free-tier.sort-order=asc
 
-To keep things simple, choose the preconfigured AmazonS3FullAccess policy. With this policy, the new user will be able to have full control over S3.
+To minimize cost, I recommend you to clean up resources as soon as you finish this project.
 
-![](images/AWS_IAM_AddUser_2.PNG)
+To opt in to the AWS Free Tier usage alerts, sign in to the AWS Management Console and open the Billing and Cost Management console at https://console.aws.amazon.com/billing/.
+Under Preferences in the navigation pane, choose Billing preferences.
+Under Cost Management Preferences, select Receive AWS Free Tier Usage Alerts to opt in to Free Tier usage alerts. To opt out, clear the Receive AWS Free Tier Usage Alerts check box.
 
-Skip this third screen:
+## Creation of a new AWS IAM user
 
-![](images/AWS_IAM_AddUser_3.PNG)
+To create S3 bucket and upload files into it with running my python scripts locally, I use the boto3 SDK.
 
-Click on Create User (Créer un utilisateur).
+To make boto3 run against my AWS account, I’ll need to provide some valid credentials. If you already have an IAM user that has full permissions to S3, you can use those user’s credentials (their access key and their secret access key) without needing to create a new user. Otherwise, the easiest way to do this is to create a new AWS user and then store the new credentials.
 
-![](images/AWS_IAM_AddUser_4.PNG)
+To create a new user, I have to use AWS Identity and Access Management (IAM).
 
-A new screen will show you the user’s generated credentials. Click on the Download .csv button to make a copy of the credentials. You will need them to complete your setup.
+I give the user a name (for example, boto3user), and enable programmatic access to ensure that this user will be able to work with any AWS supported SDK or make separate API calls.
 
-Install the AWS CLI version 2 if you haven't installed yet. Because I'm working on Windows, I can install it on https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2-windows.html.
+To keep things simple, I choose the preconfigured AmazonS3FullAccess policy. With this policy, the new user will be able to have full control over S3.
 
-Now that you have your new user and enable the AWS CLI version 2, run the following command to complete your setup:
+At the last user creation step, a new screen shows the user’s generated credentials. I click on the Download .csv button to make a copy of the credentials.
+
+Now that I have my new user, I run the following command to complete my setup:
 ```shell
 $ aws configure
 ```
-Fill in the requested information with the corresponding values from your csv file.
+I fill in the requested information with the corresponding values from my csv file.
 For the Default region name, select your region with https://docs.aws.amazon.com/fr_fr/general/latest/gr/rande.html#s3_region. In my case, I am using eu-west-3 (Paris).
 For the default output format, select json. You can see the different formats at https://docs.aws.amazon.com/fr_fr/cli/latest/userguide/cli-configure-quickstart.html#cli-configure-quickstart-config.
 
-## Data
-
-To handle the three existing data type, I will use:
-- Structured data: a csv file containing the team code (abbreviation) of each club
-- Semi-structured data: json data from API-Football
-- Unstructured data: tweets from the Twitter API
-
-To handle the two existing ingestion modes, data will be ingest by:
-- Batch processing: data from API-Football
-- Real-time processing (streaming): tweets from Twitter API
-
-### CSV file
-
-To get some tweets about our fixtures, we need the team code of each team.
-For that, I made a csv file using team codes provided on https://liaison.reuters.com/tools/sports-team-codes.
-
-Link of the csv file
-
-### APIs
-
-Twitter API
-Tweets I want to get
-
-API-Football
-Stats I want to get
-
-### Data ingestion
-All the data are first stored in their raw format into an S3 bucket which I will call "".
-
-### Which services ?
-Glue
-Kinesis
-Lambda
-
-### Which triggers ?
-
-## Designing data lake
+## Data lake deployment

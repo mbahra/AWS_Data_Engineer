@@ -23,7 +23,7 @@ def fixturesRequest(startDate, endDate):
 
     return response.json()
 
-def statisticsRequest(fixtureId):
+def statisticsRequest(idFixture):
 
     url = "https://api-football-beta.p.rapidapi.com/fixtures/statistics"
 
@@ -32,7 +32,7 @@ def statisticsRequest(fixtureId):
     'x-rapidapi-host': "api-football-beta.p.rapidapi.com"
     }
 
-    querystring = {"fixture":fixtureId}
+    querystring = {"fixture":idFixture}
 
     response = requests.request("GET", url, headers=headers, params=querystring)
 
@@ -62,10 +62,10 @@ def main():
 
     # Get a json file of statistics per last week's fixture and put them into our S3 bucket's "raw data" folder
     for fixture in lastWeekFixturesJson['response']:
-        fixtureId = fixture['fixture']['id']
-        statistiscsJson = statisticsRequest(fixtureId)
+        idFixture = fixture['fixture']['id']
+        statistiscsJson = statisticsRequest(idFixture)
         data = json.dumps(fixturesJson).encode('UTF-8')
-        statistiscsJsonKey = ''.join(['raw-data/', str(uuid.uuid4().hex[:6]), "-statiscsJson-", str(fixtureId)])   # construction of the filename with an uuid prefix to avoid partition issue
+        statistiscsJsonKey = ''.join(['raw-data/', str(uuid.uuid4().hex[:6]), "-statiscsJson-", str(idFixture)])   # construction of the filename with an uuid prefix to avoid partition issue
         s3_client.put_object(Body=data, Bucket=bucket, Key=statistiscsJsonKey)
 
 if __name__ == '__main__':
