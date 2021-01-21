@@ -2,7 +2,7 @@
 A simple data engineer project to implement some skills
 
 ## Project's purpose
-I do this project to implement and show some of my data engineer skills. It could also be a fruitful support in order to discuss in an interview.
+I do this project to implement some of my data engineer skills. It could also be a fruitful support in order to discuss in an interview.
 
 For this project I will only use cloud services, especially AWS ones.
 
@@ -62,7 +62,7 @@ Under Cost Management Preferences, select Receive AWS Free Tier Usage Alerts to 
 
 To create S3 bucket and upload files into it with running my python scripts locally, I use the boto3 SDK.
 
-To make boto3 run against my AWS account, I’ll need to provide some valid credentials. If you already have an IAM user that has full permissions to S3, you can use those user’s credentials (their access key and their secret access key) without needing to create a new user. Otherwise, the easiest way to do this is to create a new AWS user and then store the new credentials.
+To make boto3 run against my AWS account, I’ll need to provide some valid credentials. If you already have an IAM user that has full permissions to S3, you can use those user’s credentials (their access key and their secret access key) without needing to create a new user. Otherwise, we have to create a new AWS user and then store the new credentials.
 
 To create a new user, I have to use AWS Identity and Access Management (IAM).
 

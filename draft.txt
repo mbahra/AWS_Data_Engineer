@@ -25,11 +25,3 @@ Trigger a lambda function when a new file is uploaded into our S3 bucket's "raw-
 - Multiple json files for previous fixtures (1 per previous fixture)
 
 rawDataToCsv.py
-
-data for next week fixtures:
-idFixtures, status, date, hour, idHomeTeam, idAwayTeam
-data for previousFixtures:
-idFixtures, status, date, hour, idHomeTeam, idAwayTeam, goalsHomeTeam, goalsAwayTeam
-data for statistics:
-idFixture, idHomeTeam, idAwayTeam, shotsOnGoalHomeTeam, shotsOnGoalAwayTeam, shotsInsideBoxHomeTeam,
-shotsInsideBoxAwayTeam, totalShotsHomeTeam, totalShotsAwayTeam, ballPossessionHomeTeam, ballPossessionAwayTeam
