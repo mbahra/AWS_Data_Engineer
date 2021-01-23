@@ -15,13 +15,18 @@ To do:
 - Create the database
 - Create a ranking visualization
 
-Convert APIFootball json files to teams and fixtures csv files (S3, lambda)
+To request Twitter API I need:
+- Fixture date
+- Fixture hour
+- Teamcodes
 
-Trigger a lambda function when a new file is uploaded into our S3 bucket's "raw-data" folder.
-
-3 possible files :
-- 1 json file for the next fixtures
-- 1 json file for the previous fixtures
-- Multiple json files for previous fixtures (1 per previous fixture)
-
-rawDataToCsv.py
+Get these informations from the csv files:
+Get csv files from S3 (teamcodes.csv and statistics)
+Read csv files as dataframes
+Get informations from dataframes to request Twitter API
+1 script for all the previous fixtures
+    run one time
+    just get the only statistics file
+1 script for the previous week fixtures
+    run weekly
+    get the most recent statistics file
