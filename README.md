@@ -50,7 +50,7 @@ Under Cost Management Preferences, select Receive AWS Free Tier Usage Alerts to 
 
 ## Data lake deployment
 
-![](images\datalakeDeployment.png)
+![](images/datalakeDeployment.png)
 
 To create S3 bucket and upload files into it with running my python scripts locally, I use the boto3 SDK.
 
@@ -75,3 +75,5 @@ For the Default region name, I select my region using https://docs.aws.amazon.co
 For the default output format, I select json. The different formats are provided at https://docs.aws.amazon.com/fr_fr/cli/latest/userguide/cli-configure-quickstart.html#cli-configure-quickstart-config.
 
 ### Data lake structure
+
+![](images/datalakeStructure.png)
