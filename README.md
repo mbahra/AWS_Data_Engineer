@@ -6,12 +6,11 @@ I do this project to implement some of my data engineer skills. It could also be
 
 For this project I will only use cloud services, especially AWS ones.
 
-For the context, let's imagine that we are in a company which wants to understand what makes football fixtures attractive.
+For the context, let's imagine that we are in a company which wants to analyze the difference between expected goals and points, and real goals and points for each football team in a same league.
 
-For this project I will create a datalake, where I will store and process data.
+For this project I will create a data lake, where I will store and process data before loading them weekly into a database.
+Because my purpose is focused on the engineering part, the analysis part will be very restricted.
 
-To avoid costs and because my purpose is focused on the engineering part, the analysis part will be very restricted.
-It will consist in observing the correlation between some basic stats (goals, shots, etc.) and the attractiveness of a match based on a sentimental analysis of tweets.
 I will focus on english Barclays Premier League, considering all the teams and matchweeks for the current season (2020/2021).
 
 ## Prerequisites
@@ -21,11 +20,6 @@ If you want to run this project by yourself, these are the prerequisites:
 - Python 3: https://www.python.org/downloads/
 
 - Pandas library: https://pandas.pydata.org/pandas-docs/stable/getting_started/install.html
-
-- Schedule library:
-```shell
-$ pip install schedule
-```
 
 - Requests library:
 ```shell
@@ -43,10 +37,6 @@ $ pip install boto3
 
 - A RapidAPI account and key: https://rapidapi.com/marketplace
 
-- A Twitter account and an access to the Twitter API v2 Early Access:
-https://developer.twitter.com/en/products/twitter-api/early-access
-https://developer.twitter.com/en/docs/twitter-api/getting-started/guide
-
 ## AWS Free Tier usage alerts
 
 Pay attention to the pricing conditions. The AWS Free Tier conditions are provided here :
@@ -58,9 +48,13 @@ To opt in to the AWS Free Tier usage alerts, sign in to the AWS Management Conso
 Under Preferences in the navigation pane, choose Billing preferences.
 Under Cost Management Preferences, select Receive AWS Free Tier Usage Alerts to opt in to Free Tier usage alerts. To opt out, clear the Receive AWS Free Tier Usage Alerts check box.
 
-## Creation of a new AWS IAM user
+## Data lake deployment
+
+![](images\datalakeDeployment.png)
 
 To create S3 bucket and upload files into it with running my python scripts locally, I use the boto3 SDK.
+
+### Creation of a new AWS IAM user
 
 To make boto3 run against my AWS account, I’ll need to provide some valid credentials. If you already have an IAM user that has full permissions to S3, you can use those user’s credentials (their access key and their secret access key) without needing to create a new user. Otherwise, we have to create a new AWS user and then store the new credentials.
 
@@ -77,7 +71,7 @@ Now that I have my new user, I run the following command to complete my setup:
 $ aws configure
 ```
 I fill in the requested information with the corresponding values from my csv file.
-For the Default region name, select your region with https://docs.aws.amazon.com/fr_fr/general/latest/gr/rande.html#s3_region. In my case, I am using eu-west-3 (Paris).
-For the default output format, select json. You can see the different formats at https://docs.aws.amazon.com/fr_fr/cli/latest/userguide/cli-configure-quickstart.html#cli-configure-quickstart-config.
+For the Default region name, I select my region using https://docs.aws.amazon.com/fr_fr/general/latest/gr/rande.html#s3_region. In my case, I am using eu-west-3 (Paris).
+For the default output format, I select json. The different formats are provided at https://docs.aws.amazon.com/fr_fr/cli/latest/userguide/cli-configure-quickstart.html#cli-configure-quickstart-config.
 
-## Data lake deployment
+### Data lake structure

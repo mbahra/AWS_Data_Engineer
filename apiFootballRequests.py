@@ -4,7 +4,6 @@ import json
 import csv
 import schedule
 import time
-import logging
 import boto3
 import uuid
 import io
@@ -140,7 +139,7 @@ def main():
         idFixture = fixture['fixture']['id']
         statisticsJson = statisticsRequest(idFixture)
     # Upload statistics json object into 'raw-data' folder
-        prefix = 'raw-data/statistics/'
+        prefix = 'raw-data/api-football/statistics/'
         name = ''.join(['statistics-', str(idFixture), '.json'])
         uploadJsonToS3(statisticsJson, dataLakeBucketName, s3_client, prefix, name)
     # Process each statistics json data to a new dataframe row
