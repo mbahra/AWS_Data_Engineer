@@ -50,7 +50,7 @@ Under Cost Management Preferences, select Receive AWS Free Tier Usage Alerts to 
 
 ## Data lake deployment
 
-![](images\datalakeDeployment.png)
+![](images/datalakeDeployment.png)
 
 To create S3 bucket and upload files into it with running my python scripts locally, I use the boto3 SDK.
 
@@ -75,3 +75,15 @@ For the Default region name, I select my region using https://docs.aws.amazon.co
 For the default output format, I select json. The different formats are provided at https://docs.aws.amazon.com/fr_fr/cli/latest/userguide/cli-configure-quickstart.html#cli-configure-quickstart-config.
 
 ### Data lake structure
+
+![](images/datalakeStructure.png)
+
+I get football data using API-Football. Here is its documentation: https://www.api-football.com/documentation-v3.
+
+After creating my RapidAPI account and getting my API key (https://rapidapi.com/marketplace), I get the english Barclays Premier League id by sending a request to the API. The id is 39. Now I can write my python script datalakeDeployment.py to get data from API-Football and deploy my data lake by running the script locally.
+
+This script create my data lake as an S3 bucket named with a globally unique name to satisfy S3 policy requirements.
+Then it uploads teamcodes.csv to the data lake, into a folder named "processed-data". I made this csv file myself by aggregating the API-Football id, the name, and the team code (for example 'ARS' for Arsenal) of each team. It could be useful to go further in this project by getting some tweets for sentimental analysis.
+After that, the script requests API-Football to get previous fixtures, their statistics, and the next week fixtures. Data are uploaded in their json raw format as json files to the data lake into the folders "raw-data/api-football/previous-fixtures", "raw-data/api-football/statistics", and "raw-data/api-football/next-fixtures". Finally, the json data are processed to be uploaded as csv files to the data lake into the folders "processed-data/api-football/previous-fixtures", "processed-data/api-football/statistics", and "processed-data/api-football/next-fixtures". As for teamcodes.csv, I want to get the next week fixtures to be able to go further in this project by handle tweets streaming for some fixtures.
+
+If you want to run the script by yourself, make sure that you filled your API key in place of 'XXX'. Also, pay attention to the API-Football pricing (free until 100 requests per day, around €0.00450 / request beyond). Since the script will send one request to get the previous fixtures, another one to get the next week fixtures, then another one to each of the previous fixtures to get their statistics, you will begin to pay around €0.00450 / fixture for each fixture after the 98 firsts.

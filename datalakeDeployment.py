@@ -150,11 +150,11 @@ def main():
     # Get next week fixtures from API Football
     nextWeekFixturesJson = fixturesRequest(todayDate, nextWeekDate)
     # Upload next week fixtures json object into 'raw-data' folder
-    prefix = 'raw-data/api-football/nextFixtures/'
+    prefix = 'raw-data/api-football/next-fixtures/'
     name = ''.join(['nextWeekFixtures-', todayDate, '.json'])
     uploadJsonToS3(nextWeekFixturesJson, dataLakeBucketName, s3_client, prefix, name)
     # Process and upload next week fixtures as a csv file into 'processed-data' folder
-    prefix = 'processed-data/api-football/nextFixtures/'
+    prefix = 'processed-data/api-football/next-fixtures/'
     name = ''.join(['nextWeekFixtures-', todayDate, '.csv'])
     uploadFixturesCsvToS3(nextWeekFixturesJson, dataLakeBucketName, s3_client, prefix, name)
 
@@ -162,11 +162,11 @@ def main():
     # Get previous fixtures from API Football
     previousFixturesJson = fixturesRequest(firstFixtureDate, yesterdayDate)
     # Upload previous fixtures json object into 'raw-data' folder
-    prefix = 'raw-data/api-football/previousFixtures/'
+    prefix = 'raw-data/api-football/previous-fixtures/'
     name = ''.join(['previousFixtures-', todayDate, '.json'])
     uploadJsonToS3(previousFixturesJson, dataLakeBucketName, s3_client, prefix, name)
     # Process and upload previous fixtures as a csv file into 'processed-data' folder
-    prefix = 'processed-data/api-football/previousFixtures/'
+    prefix = 'processed-data/api-football/previous-fixtures/'
     name = ''.join(['previousFixtures-', todayDate, '.csv'])
     uploadFixturesCsvToS3(previousFixturesJson, dataLakeBucketName, s3_client, prefix, name)
 
