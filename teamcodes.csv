@@ -1,21 +1,21 @@
-teamCode, team, idTeam
-ARS, Arsenal, 42
-AVA, Aston Villa, 66
-BRH, Brighton & Hove Albion, 51
-BUR, Burnley, 44
-CHE, Chelsea, 49
-CRY, Crystal Palace, 52
-EVE, Everton, 45
-FUL, Fulham, 36
-LEE, Leeds United, 63
-LEI, Leicester City, 46
-LIV, Liverpool, 40
-MCI, Manchester City, 50
-MUN, Manchester United, 33
-NEW, Newcastle United, 34
-SHU, Sheffield United, 62
-SOU, Southampton, 41
-TOT, Tottenham Hotspur, 47
-WBA, West Bromwich Albion, 60
-WHU, West Ham United, 48
-WLV, Wolverhampton Wanderers, 39
+idTeam,teamCode,teamName
+42,ARS,Arsenal
+66,AVA,Aston Villa
+51,BRH,Brighton & Hove Albion
+44,BUR,Burnley
+49,CHE,Chelsea
+52,CRY,Crystal Palace
+45,EVE,Everton
+36,FUL,Fulham
+63,LEE,Leeds United
+46,LEI,Leicester City
+40,LIV,Liverpool
+50,MCI,Manchester City
+33,MUN,Manchester United
+34,NEW,Newcastle United
+62,SHU,Sheffield United
+41,SOU,Southampton
+47,TOT,Tottenham Hotspur
+60,WBA,West Bromwich Albion
+48,WHU,West Ham United
+39,WLV,Wolverhampton Wanderers

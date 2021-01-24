@@ -26,33 +26,18 @@ def fixturesRequest(startDate, endDate):
     response = requests.request("GET", url, headers=headers, params=querystring)
     return response.json()
 
-def statisticsRequest(idFixture):
-    """
-    Sends a request to API Football to get the 2020/2021 english Premier League fixtures
-    from a starting date to an ending date, then returns the response as a json object.
-    """
-
-    url = "https://api-football-beta.p.rapidapi.com/fixtures/statistics"
-    headers = {
-    'x-rapidapi-key': "XXX", # Replace XXX by your API key
-    'x-rapidapi-host': "api-football-beta.p.rapidapi.com"
-    }
-    querystring = {"fixture":idFixture}
-    response = requests.request("GET", url, headers=headers, params=querystring)
-    return response.json()
-
-def uploadJsonToS3(jsonObject, bucket, s3Connection, title, suffix):
+def uploadJsonToS3(jsonObject, bucket, s3Connection, prefix, name):
     """
     Uploads json object to S3 by encoding it in utf-8.
     """
 
     data = json.dumps(jsonObject).encode('UTF-8')
     # The key has a uuid prefix to avoid partition issue
-    key = ''.join(['raw-data/', str(uuid.uuid4().hex[:6]), '-', title, '-', suffix, '.json'])
+    key = ''.join([prefix, str(uuid.uuid4().hex[:6]), '-', name])
     s3Connection.put_object(Body=data, Bucket=bucket, Key=key)
     print(key + ' uploaded into ' + bucket)
 
-def uploadCsvToS3(df, bucket, s3Connection, title, suffix):
+def uploadCsvToS3(df, bucket, s3Connection, prefix, name):
     """
     Converts a dataframe to a csv,
     then uploads the csv file directly to S3 without storing it locally.
@@ -61,34 +46,42 @@ def uploadCsvToS3(df, bucket, s3Connection, title, suffix):
     csvBuffer = io.StringIO()
     df.to_csv(csvBuffer)
     # The key has a uuid prefix to avoid partition issue
-    key = ''.join(['processed-data/', str(uuid.uuid4().hex[:6]), '-', title, '-', suffix, '.csv'])
+    key = ''.join([prefix, str(uuid.uuid4().hex[:6]), '-', name])
     s3Connection.put_object(Body=csvBuffer.getvalue(), Bucket=bucket, Key=key)
     print(key + ' uploaded into ' + bucket)
 
-def uploadFixturesCsvToS3(data, bucket, s3Connection, title, suffix):
+def uploadFixturesCsvToS3(data, bucket, s3Connection, prefix, name):
     """
     Converts a fixture json file to a dataframe containing the relevant data.
     Converts the dataframe to a csv.
     Uploads the csv file directly to S3 without storing it locally.
+    Returns the dataframe.
     """
 
-    df = pd.DataFrame(columns=['idFixture', 'status', 'date', 'hour',
+    # Get teamcodes from S3 to construct hashtags
+    teamcodes = s3Connection.get_object(Bucket=bucket, Key='processed-data/teamcodes.csv')
+    teamcodesDf = pd.read_csv(teamcodes['Body'])
+    # Process the json object's data to a dataframe
+    df = pd.DataFrame(columns=['idFixture', 'status', 'date', 'time', 'hashtag',
                                     'idHomeTeam', 'idAwayTeam', 'goalsHomeTeam', 'goalsAwayTeam'])
     for fixture in data['response']:
         idFixture = fixture['fixture']['id']
         status = fixture['fixture']['status']['long']
         date = fixture['fixture']['date'][:10]
-        hour = fixture['fixture']['date'][11:16]
+        time = fixture['fixture']['date'][11:16]
         idHomeTeam = fixture['teams']['home']['id']
         idAwayTeam = fixture['teams']['away']['id']
+        teamcodeHomeTeam = teamcodesDf.loc[teamcodesDf['idTeam'] == idHomeTeam]['teamCode'].item()
+        teamcodeAwayTeam = teamcodesDf.loc[teamcodesDf['idTeam'] == idAwayTeam]['teamCode'].item()
+        hashtag = ''.join(['#', teamcodeHomeTeam, teamcodeAwayTeam])
         goalsHomeTeam = fixture['goals']['home']
         goalsAwayTeam = fixture['goals']['away']
-        row = {'idFixture':idFixture, 'status':status, 'date':date, 'hour':hour,
+        row = {'idFixture':idFixture, 'status':status, 'date':date, 'time':time, 'hashtag':hashtag,
                 'idHomeTeam':idHomeTeam, 'idAwayTeam':idAwayTeam,
                 'goalsHomeTeam':goalsHomeTeam, 'goalsAwayTeam':goalsAwayTeam}
         df = df.append(row, ignore_index=True)
     # Convert df to csv and upload it to S3 into the 'processed-data' folder
-    uploadCsvToS3(df, bucket, s3Connection, title, suffix)
+    uploadCsvToS3(df, bucket, s3Connection, prefix, name)
 
 def main():
 
@@ -112,17 +105,25 @@ def main():
     # Get next week fixtures from API Football
     nextWeekFixturesJson = fixturesRequest(todayDate, nextWeekDate)
     # Upload next week fixtures json object into 'raw-data' folder
-    uploadJsonToS3(nextWeekFixturesJson, dataLakeBucketName, s3_client, 'nextWeekFixtures', todayDate)
+    prefix = 'raw-data/api-football/nextFixtures/'
+    name = ''.join(['nextWeekFixtures-', todayDate, '.json'])
+    uploadJsonToS3(nextWeekFixturesJson, dataLakeBucketName, s3_client, prefix, name)
     # Process and upload next week fixtures as a csv file into 'processed-data' folder
-    uploadFixturesCsvToS3(nextWeekFixturesJson, dataLakeBucketName, s3_client, 'nextWeekFixtures', todayDate)
+    prefix = 'processed-data/api-football/nextFixtures/'
+    name = ''.join(['nextWeekFixtures-', todayDate, '.csv'])
+    uploadFixturesCsvToS3(nextWeekFixturesJson, dataLakeBucketName, s3_client, prefix, name)
 
     # PREVIOUS WEEK FIXTURES
-    # Get previous fixtures from API Football
+    # Get previous week fixtures from API Football
     previousWeekFixturesJson = fixturesRequest(previousWeekDate, yesterdayDate)
-    # Upload previous fixtures json object into 'raw-data' folder
-    uploadJsonToS3(previousWeekFixturesJson, dataLakeBucketName, s3_client, 'previousWeekFixtures', todayDate)
-    # Process and upload previous fixtures as a csv file into 'processed-data' folder
-    uploadFixturesCsvToS3(previousWeekFixturesJson, dataLakeBucketName, s3_client, 'previousWeekFixtures', todayDate)
+    # Upload previous week fixtures json object into 'raw-data' folder
+    prefix = 'raw-data/api-football/previousFixtures/'
+    name = ''.join(['previousWeekFixtures-', todayDate, '.json'])
+    uploadJsonToS3(previousFixturesJson, dataLakeBucketName, s3_client, prefix, name)
+    # Process and upload previous week fixtures as a csv file into 'processed-data' folder
+    prefix = 'processed-data/api-football/previousFixtures/'
+    name = ''.join(['previousWeekFixtures-', todayDate, '.csv'])
+    uploadFixturesCsvToS3(previousFixturesJson, dataLakeBucketName, s3_client, prefix, name)
 
     # STATISTICS
     # Create dataframe columns for statistcs data
@@ -139,7 +140,9 @@ def main():
         idFixture = fixture['fixture']['id']
         statisticsJson = statisticsRequest(idFixture)
     # Upload statistics json object into 'raw-data' folder
-        uploadJsonToS3(statisticsJson, dataLakeBucketName, s3_client, 'statistics', str(idFixture))
+        prefix = 'raw-data/statistics/'
+        name = ''.join(['statistics-', str(idFixture), '.json'])
+        uploadJsonToS3(statisticsJson, dataLakeBucketName, s3_client, prefix, name)
     # Process each statistics json data to a new dataframe row
         homeTeam = statisticsJson['response'][0]
         awayTeam = statisticsJson['response'][1]
@@ -164,7 +167,9 @@ def main():
     #            If you run this script after the league's 10th round, it will involve cost
         time.sleep(3)
     # Upload statistics as a csv file into 'processed-data' folder
-    uploadCsvToS3(df, dataLakeBucketName, s3_client, 'statistics', todayDate)
+    prefix = 'processed-data/api-football/statistics/'
+    name = ''.join(['statistics-', todayDate, '.csv'])
+    uploadCsvToS3(df, dataLakeBucketName, s3_client, prefix, name)
 
     print('API Football data received and processed successfully!')
 
