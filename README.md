@@ -50,7 +50,7 @@ Under Cost Management Preferences, select Receive AWS Free Tier Usage Alerts to 
 
 ## Data lake deployment
 
-![](relative/path/to/images\datalakeDeployment.png)
+![](relative/path/to/images/datalakeDeployment.png)
 
 To create S3 bucket and upload files into it with running my python scripts locally, I use the boto3 SDK.
 
