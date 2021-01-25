@@ -141,7 +141,7 @@ def main():
     ###     Convert each dataframe to csv
     ###     Upload csv directly to the datalake into the 'processed-data' folder
 
-    firstFixtureDate = '2021-01-06'
+    firstFixtureDate = '2020-09-10'
     yesterdayDate = (datetime.datetime.today() - datetime.timedelta(days=1)).strftime('%Y-%m-%d')
     todayDate = datetime.datetime.today().strftime('%Y-%m-%d')
     nextWeekDate = (datetime.datetime.today() + datetime.timedelta(days=6)).strftime('%Y-%m-%d')
