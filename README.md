@@ -60,7 +60,7 @@ To make boto3 run against my AWS account, I’ll need to provide some valid cred
 
 To create a new user, I have to use AWS Identity and Access Management (IAM).
 
-I give the user a name (for example, boto3user), and enable programmatic access to ensure that this user will be able to work with any AWS supported SDK or make separate API calls.
+I give the user a name (in my case, boto3user), and enable programmatic access to ensure that this user will be able to work with any AWS supported SDK or make separate API calls.
 
 To keep things simple, I choose the preconfigured AmazonS3FullAccess policy. With this policy, the new user will be able to have full control over S3.
 
@@ -88,71 +88,66 @@ After that, the script requests API-Football to get previous fixtures, their sta
 
 If you want to run the script by yourself, make sure that you filled your API key in place of 'XXX'. Also, pay attention to the API-Football pricing (free until 100 requests per day, around €0.00450 / request beyond). Since the script will send one request to get the previous fixtures, another one to get the next week fixtures, then another one to each of the previous fixtures to get their statistics, you will begin to pay around €0.00450 / fixture for each fixture after the 98 firsts.
 
-## ETL with AWS Lambda
+## ETL jobs with AWS Lambda
 
-With AWS, there are several ways to perform ETL jobs. You can for example use AWS Glue, which is a serverless data integration service, but also AWS Lambda, which is a serverless compute service. For this project I will use them both. I will use AWS Lambda for the first ETL job that I will create.
+With AWS, there are several ways to perform ETL jobs. You can for example use AWS Glue, which is a serverless data integration service, but also AWS Lambda, which is a serverless compute service. For this project I will use them both. I will use AWS Lambda for the firsts ETL jobs I will create, to show two different ways to run a Lambda function automatically: whith a scheduler, and with a trigger from S3.
+
+#### Adding layers to Lambda functions
+
+In my scripts that I want to run as Lambda functions, I use the requests and pandas packages, which are not directly available in Lambda.
+In order to use any of these packages in a Lambda function, I have to add a layer to the Lambda function. For example, if I have a Lambda function using pandas, I have to add it a pandas layer to allow the pandas package import.
+
+Whenever it is needed, I add the required layer using the Klayers repository on github:
+https://github.com/keithrozario/Klayers
+
+For my Lambda functions I have to find the right ARN (AWS Resource Name) inside the deployments folder for python3.8.
+After checking the region mentioned in my Lambda function ARN, on the top-right corner of the Lambda function screen (in my case 'eu-west-3'),I select the corresponding csv file available in the repository.
+Finally, I just have to copy paste the ARN of the layer that I need.
+
+If you want more details go on https://medium.com/@melissa_89553/how-to-import-python-packages-in-aws-lambda-pandas-scipy-numpy-bb2c98c974e9.
+
+#### etlApiFootballRequests job
 
 As I did to deploy the data lake, I want to extract data from API-Football and upload them to the data lake. I want to extract data about the previous week fixtures, their statistics, and the next week fixtures.
 
-To do that, I create a new python Lambda function that I name etlApiFootballRequests. I wrote the python script for this Lambda function in etlApiFootballRequests.py. I just have to copy paste the whole script into my new Lambda function.
+To do that, I first create an new IAM role to give AmazonS3FullAccess and AWSLambdaBasicExecutionRole permissions to Lambda.
+Then, I create a new python Lambda function that I name etlApiFootballRequests, giving the IAM role I've just created.
+I wrote the python script for this Lambda function in etlApiFootballRequests.py. I just have to copy paste the whole script into my new Lambda function and add the requests layer to my Lambda function.
 
-Because I use the requests package in my script, I first have to install it as a layer for my Lambda function. A Lambda function layer can include several packages. Because I will create another Lambda function which will use pandas, and while it's more relevant to just install the needed packages for a Lambda function, I will create a layer including the requests and the pandas packages, as this is just a small project to implement some skills, and for which I think it's not very relevant to do the same operation several times.
-
-### Lambda layer creation
-
-I create my Lambda layer by uploading first the packages needed (in my case requests and pandas) as a zip file to an S3 bucket (I will use the data lake that I have created).
-
-I could download the packages locally, but for this project, it can be relevant to do it using an EC2 instance. EC2 is a web service that provides secure and resizable compute capacity in the cloud. I did this part using https://towardsdatascience.com/automating-etl-with-aws-Lambda-97b9e3404929. After uploading packages as a zip file to S3, I will attach it as a layer to Lambda. function. This is an illustration of the workflow:
-
-![](images/EC2workflow.png)
-
-To create my EC2 instance, I choose the operating system "Ubuntu Server 18.04 LTS (HVM)", and the instance "t2.micro" which is include in the AWS free tier.
-
-I create a new IAM role for this EC2 instance with the “AmazonS3FullAccess” policy.
-
-Just before launching the instance, I create a new key pair, named it "mykeypair", and download the key pair. Then I launch my EC2 instance.
-
-![](images/EC2instance.PNG)
-
-To connect me to the instance, I copy the example code, paste it into my command prompt changing the path of the key (in my case "mykeypair.pem"), and run the command.
-
-Then, I run these commands:
-```shell
-sudo apt-get update   # Update the system
-python -V  # Check the version of python
-sudo apt-get install python3.7 -y    # Installing python version 3.7
-
-# Updating alternatives - This points to python 3.7 insted of 3.6 when we open python (Updates the Symbolic links)
-sudo update-alternatives --install /urs/bin/python3 python3 /usr/python3.6 1
-sudo update-alternatives --install /urs/bin/python3 python3 /usr/python3.7 2
-
-# Create a directory to install all the packages we need
-mkdir -p build/python/lab/python3.7/site-packages
-
-# Install Pip , Zip and aws CLI
-sudo apt install python3-pip # Hit "Y" if you get a prompt "Do you want to continue? [Y/n]"
-sudo apt-get install awscli
-sudo apt-get install zip
-
-# Install required packages
-pip3 install pandas requests -t build/python/lab/python3.7/site-packages/ --system
-
-cd build/
-
-# Zip the installed packages to be uploaded to S3
-zip -r pandas_requests.zip .
-
-# Copy the Zip file to my S3 bucket, into the raw-data folders
-# (I had created a S3 bucket called datalake-57e3d8aa-01ab-432f-8b25-78d63bb86886)
-aws s3 cp pandas_requests.zip s3://datalake-57e3d8aa-01ab-432f-8b25-78d63bb86886/raw-data/
-```
-Now that my packaged zip file is uploaded to my S3 bucket, I go to my S3 bucket into my raw-data folder to copy the object URL of the zip file, then I paste the URL into the layer configuration while creating the layer.
-
-Finally, I return to my Lambda function and now I can add the layer.
-
-### Schedule the Lambda function
+##### Schedule the Lambda function
 
 I schedule my etlApiFootballRequests Lambda function using CloudWatch, with a cron expression.
-I schedule this ETL job each Tuesday at 8 AM, with the cron expression 0 0 8 ? * TUE *.
+I schedule this ETL job each Tuesday at 8 AM for years 2020 and 2021, with the cron expression "0 8 ? * TUE 2020-2021".
 
 ![](images/etlApiFootballRequests.PNG)
+
+#### etlJsonToCsv jobs
+
+Now that my first job is created and scheduled to get data from API-Football each Tuesday at 8 AM, I will create new ETL jobs with Lambda to process each json file uploaded into the raw-data folder of my data lake bucket, then upload the processed data as a csv file into the processed-data folder.
+
+I wrote a script for each type of data from API-Football: previous fixtures (etlJsonToCsvPreviousFixtures.py), statistics (etlJsonToCsvStatistics.py), and next fixtures (etlJsonToCsvNextFixtures.py).
+
+As previously, I just have to create a new Lambda function for each of these scripts, giving them the IAM role created for Lambda, and copy paste my python scripts to the appropriate Lambda function.
+
+##### Trigger the Lambda functions
+
+To trigger my Lambda functions each time that an object is putted into my data lake, I have to create event notifications into the properties of my data lake bucket.
+
+As shown in my following screenshots, I select the right prefix, suffix, event type, and Lambda function for each trigger.
+
+![](images/lambdaTrigger1.PNG)
+
+![](images/lambdaTrigger2.PNG)
+
+![](images/lambdaTrigger3.PNG)
+
+#### CloudWatch metrics and logs
+
+On the monitoring screen of a Lambda function, I have some views of several metrics and logs, provided by CloudWatch, the monitoring and observability service on AWS.
+I can use these views and go to the CloudWatch dashboard to monitor my jobs.
+
+![](images/CloudWatch1.PNG)
+
+![](images/CloudWatch2.PNG)
+
+![](images/CloudWatch3.PNG)

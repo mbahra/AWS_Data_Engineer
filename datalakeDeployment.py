@@ -34,7 +34,7 @@ def createBucket(bucketPrefix, s3Connection):
         CreateBucketConfiguration={
         'LocationConstraint': currentRegion})
     print("S3 bucket created:", bucketName, currentRegion)
-    return bucketResponse, bucketName
+    return bucketName
 
 def fixturesRequest(startDate, endDate):
     """
@@ -95,14 +95,11 @@ def uploadFixturesCsvToS3(data, bucket, s3Connection, prefix, name):
     Converts a fixture json file to a dataframe containing the relevant data.
     Converts the dataframe to a csv.
     Uploads the csv file directly to S3 without storing it locally.
-    Returns the dataframe.
     """
 
-    # Get teamcodes to construct hashtags
-    teamcodesDf = pd.read_csv('teamcodes.csv')
     # Process the json object's data to a dataframe
-    df = pd.DataFrame(columns=['idFixture', 'status', 'date', 'time', 'hashtag',
-                                    'idHomeTeam', 'idAwayTeam', 'goalsHomeTeam', 'goalsAwayTeam'])
+    df = pd.DataFrame(columns=['idFixture', 'status', 'date', 'time',
+                                'idHomeTeam', 'idAwayTeam', 'goalsHomeTeam', 'goalsAwayTeam'])
     for fixture in data['response']:
         idFixture = fixture['fixture']['id']
         status = fixture['fixture']['status']['long']
@@ -110,12 +107,9 @@ def uploadFixturesCsvToS3(data, bucket, s3Connection, prefix, name):
         time = fixture['fixture']['date'][11:16]
         idHomeTeam = fixture['teams']['home']['id']
         idAwayTeam = fixture['teams']['away']['id']
-        teamcodeHomeTeam = teamcodesDf.loc[teamcodesDf['idTeam'] == idHomeTeam]['teamCode'].item()
-        teamcodeAwayTeam = teamcodesDf.loc[teamcodesDf['idTeam'] == idAwayTeam]['teamCode'].item()
-        hashtag = ''.join(['#', teamcodeHomeTeam, teamcodeAwayTeam])
         goalsHomeTeam = fixture['goals']['home']
         goalsAwayTeam = fixture['goals']['away']
-        row = {'idFixture':idFixture, 'status':status, 'date':date, 'time':time, 'hashtag':hashtag,
+        row = {'idFixture':idFixture, 'status':status, 'date':date, 'time':time,
                 'idHomeTeam':idHomeTeam, 'idAwayTeam':idAwayTeam,
                 'goalsHomeTeam':goalsHomeTeam, 'goalsAwayTeam':goalsAwayTeam}
         df = df.append(row, ignore_index=True)
@@ -128,7 +122,7 @@ def main():
 
     ### 1/  Creation of the "data lake" bucket
 
-    dataLakeBucket, dataLakeBucketName = createBucket('datalake-', s3_client)
+    dataLakeBucketName = createBucket('datalake-', s3_client)
 
     ### 2/  Upload teamcodes.csv to the data lake into a folder named 'processed-data'
 
@@ -141,7 +135,7 @@ def main():
     ###     Convert each dataframe to csv
     ###     Upload csv directly to the datalake into the 'processed-data' folder
 
-    firstFixtureDate = '2020-09-10'
+    firstFixtureDate = '2021-01-20'
     yesterdayDate = (datetime.datetime.today() - datetime.timedelta(days=1)).strftime('%Y-%m-%d')
     todayDate = datetime.datetime.today().strftime('%Y-%m-%d')
     nextWeekDate = (datetime.datetime.today() + datetime.timedelta(days=6)).strftime('%Y-%m-%d')
