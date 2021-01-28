@@ -1,7 +1,6 @@
 import requests
 import datetime
 import json
-import time
 import boto3
 import uuid
 from botocore.exceptions import ClientError
@@ -72,7 +71,7 @@ def lambda_handler(event, context):
 
     # PREVIOUS WEEK FIXTURES
     # Get previous week fixtures from API Football
-    previousWeekFixturesJson = fixturesRequest(previousWeekDate, yesterdayDate)
+    previousFixturesJson = fixturesRequest(previousWeekDate, yesterdayDate)
     # Upload previous week fixtures json object as json file into 'raw-data' folder
     prefix = 'raw-data/api-football/previous-fixtures/'
     name = ''.join(['previousFixtures-', todayDate, '.json'])
@@ -80,7 +79,7 @@ def lambda_handler(event, context):
 
     # STATISTICS
     # Get statistics for each previous fixtures from API Football
-    for fixture in previousWeekFixturesJson['response']:
+    for fixture in previousFixturesJson['response']:
         status = fixture['fixture']['status']['long']
         if status == 'Match Postponed':
             continue
@@ -90,9 +89,5 @@ def lambda_handler(event, context):
         prefix = 'raw-data/api-football/statistics/'
         name = ''.join(['statistics-', str(idFixture), '.json'])
         uploadJsonToS3(statisticsJson, dataLakeBucketName, s3_client, prefix, name)
-    # Sleep 3 seconds between each statistics request to avoid the 30 requests / minute API Football limitation
-    # WARNING!!! API Football is free until 100 requests / day, and costs around €0.00450 / request beyond
-    #            This ETL job won't involve any cost if you don't change previousWeekDate for an older date
-        time.sleep(3)
 
     print(todayDate, 'Lambda ETL job ApiFootballRequests performed successfully!')

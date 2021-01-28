@@ -19,7 +19,7 @@ def lambda_handler(event, context):
         """
 
         csvBuffer = io.StringIO()
-        df.to_csv(csvBuffer)
+        df.to_csv(csvBuffer, index=False)
         # The key has a uuid prefix to avoid partition issue
         key = ''.join([prefix, str(uuid.uuid4().hex[:6]), '-', name])
         s3Connection.put_object(Body=csvBuffer.getvalue(), Bucket=bucket, Key=key)

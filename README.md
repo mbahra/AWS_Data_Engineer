@@ -112,12 +112,13 @@ As I did to deploy the data lake, I want to extract data from API-Football and u
 
 To do that, I first create an new IAM role to give AmazonS3FullAccess and AWSLambdaBasicExecutionRole permissions to Lambda.
 Then, I create a new python Lambda function that I name etlApiFootballRequests, giving the IAM role I've just created.
-I wrote the python script for this Lambda function in etlApiFootballRequests.py. I just have to copy paste the whole script into my new Lambda function and add the requests layer to my Lambda function.
+I wrote the python script for this Lambda function in etlApiFootballRequests.py. I just have to copy paste the whole script into my new Lambda function specifying my data lake bucket name and my api key, and add the requests layer to my Lambda function. I also set the timeout to 10 seconds instead of 3, to prevent the case where there are a lot of previous week fixtures to request for their statistics.  
 
 ##### Schedule the Lambda function
 
 I schedule my etlApiFootballRequests Lambda function using CloudWatch, with a cron expression.
-I schedule this ETL job each Tuesday at 8 AM for years 2020 and 2021, with the cron expression "0 8 ? * TUE 2020-2021".
+I schedule this ETL job each Tuesday at 8 AM (GMT) for years 2020 and 2021, with the cron expression "0 8 ? * TUE 2020-2021".
+Pay attention that the time zone used by CloudWatch for cron expressions is GMT.
 
 ![](images/etlApiFootballRequests.PNG)
 
@@ -143,11 +144,21 @@ As shown in my following screenshots, I select the right prefix, suffix, event t
 
 #### CloudWatch metrics and logs
 
+![](images/CloudWatchLambdaMonitoring.PNG)
+
 On the monitoring screen of a Lambda function, I have some views of several metrics and logs, provided by CloudWatch, the monitoring and observability service on AWS.
-I can use these views and go to the CloudWatch dashboard to monitor my jobs.
+I can use these views and go to the CloudWatch dashboard to monitor and troubleshoot my jobs.
 
-![](images/CloudWatch1.PNG)
+For instance, this log group shows me that my Lambda function raised a NameError. Hence I have to troubleshoot my Lambda function (in this case I simply wrote "previousWFixturesJson" in place of "previousFixturesJson").
 
-![](images/CloudWatch2.PNG)
+![](images/troubleshootingCloudWatch1.PNG)
 
-![](images/CloudWatch3.PNG)
+This other one shows me that my Lambda function raised a ClientError with an AccessDenied. In this case I forgot to give AmazonS3FullAccess permissions to my Lambda function.
+
+![](images/troubleshootingCloudWatch2.PNG)
+
+Finally, this log group shows me that next week fixtures were processed to csv and uploaded to the data lake successfully.
+
+![](images/troubleshootingCloudWatch3.PNG)
+
+I had to use CloudWatch to troubleshoot my jobs several times.
