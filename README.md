@@ -1,7 +1,7 @@
 # AWS Data Engineer (in progress)
 A simple data engineer project to implement some skills
 
-##1 Project's purpose
+## 1 Project's purpose
 I do this project to implement some of my data engineer skills. It could also be a fruitful support in order to discuss in an interview.
 
 For this project I will only use cloud services, especially AWS ones.
@@ -13,7 +13,7 @@ Because my purpose is focused on the engineering part, the analysis part will be
 
 I will focus on english Barclays Premier League, considering all the teams and matchweeks for the current season (2020/2021).
 
-##2 Prerequisites
+## 2 Prerequisites
 
 If you want to run this project by yourself, these are the prerequisites:
 
@@ -41,7 +41,7 @@ $ pip install boto3
 
 - A subscription to the "Basic" plan for API-Football-Beta: https://rapidapi.com/api-sports/api/api-football-beta/pricing
 
-##3 AWS Free Tier usage alerts
+## 3 AWS Free Tier usage alerts
 
 Pay attention to the pricing conditions. The AWS Free Tier conditions are provided here :
 https://aws.amazon.com/free/?nc1=h_ls&all-free-tier.sort-by=item.additionalFields.SortRank&all-free-tier.sort-order=asc
@@ -52,13 +52,13 @@ To opt in to the AWS Free Tier usage alerts, sign in to the AWS Management Conso
 Under Preferences in the navigation pane, choose Billing preferences.
 Under Cost Management Preferences, select Receive AWS Free Tier Usage Alerts to opt in to Free Tier usage alerts. To opt out, clear the Receive AWS Free Tier Usage Alerts check box.
 
-##4 Data lake deployment
+## 4 Data lake deployment
 
 ![](images/datalakeDeployment.png)
 
 To create S3 bucket and upload files into it with running my python scripts locally, I use the boto3 SDK.
 
-###4.1 Creation of a new AWS IAM user
+### 4.1 Creation of a new AWS IAM user
 
 To make boto3 run against my AWS account, I’ll need to provide some valid credentials. If you already have an IAM user that has full permissions to S3, you can use those user’s credentials (their access key and their secret access key) without needing to create a new user. Otherwise, we have to create a new AWS user and then store the new credentials.
 
@@ -80,7 +80,7 @@ I fill in the requested information with the corresponding values from my csv fi
 For the Default region name, I select my region using https://docs.aws.amazon.com/fr_fr/general/latest/gr/rande.html#s3_region. In my case, I am using eu-west-3 (Paris).
 For the default output format, I select json. The different formats are provided at https://docs.aws.amazon.com/fr_fr/cli/latest/userguide/cli-configure-quickstart.html#cli-configure-quickstart-config.
 
-###4.2 Data lake structure
+### 4.2 Data lake structure
 
 ![](images/datalakeStructure.png)
 
@@ -94,7 +94,7 @@ After that, the script requests API-Football to get previous fixtures, and their
 
 If you want to run the script by yourself, make sure that you filled your API key in place of 'XXX'. Also, pay attention to the API-Football pricing (free until 100 requests per day, around €0.00450 / request beyond). Since the script will send one request to get the fixtures, then another one to each of the finished fixtures to get their statistics, you will begin to pay around €0.00450 / fixture for each fixture after the 99 firsts.
 
-###4.3 Data lake configuration
+### 4.3 Data lake configuration
 
 Using AWS Lake Formation, I specify my S3 bucket as the data lake location.
 
@@ -116,17 +116,17 @@ The crawler add 5 tables to awsdataengineerprojectdatabase. These tables contain
 
 ![](images/databaseTables.PNG)
 
-##5 ETL jobs with AWS Lambda
+## 5 ETL jobs with AWS Lambda
 
 With AWS, there are several ways to perform ETL jobs. You can for example use AWS Glue, which is a serverless data integration service, but also AWS Lambda, which is a serverless compute service. For this project I will use them both. I will use AWS Lambda for the firsts ETL jobs I will create, to show two different ways to run a Lambda function automatically: whith a scheduler, and with a trigger from S3.
 
-###5.1 Lambda role
+### 5.1 Lambda role
 
 I first create a new IAM role that I name "LambdaFullAccessToS3" to give AmazonS3FullAccess and AWSLambdaBasicExecutionRole permissions to my Lambda functions.
 
 ![](images/LambdaRole.PNG)
 
-###5.2 Adding layers to Lambda functions
+### 5.2 Adding layers to Lambda functions
 
 In my scripts that I want to run as Lambda functions, I use the requests and pandas packages, which are not directly available in Lambda.
 In order to use any of these packages in a Lambda function, I have to add a layer to the Lambda function. For example, if I have a Lambda function using pandas, I have to add it a pandas layer to allow the pandas package import.
@@ -140,7 +140,7 @@ Finally, I just have to copy paste the ARN of the layer that I need.
 
 If you want more details go on https://medium.com/@melissa_89553/how-to-import-python-packages-in-aws-lambda-pandas-scipy-numpy-bb2c98c974e9.
 
-###5.3 etlGetFixtures job
+### 5.3 etlGetFixtures job
 
 As I did to deploy the data lake, I want to extract data from API-Football-Beta and upload them to the data lake. I want to extract data about the previous week fixtures, their statistics, and the next week fixtures.
 As for teamcodes.csv, I want to get the next week fixtures to be able to go further in this project by handle tweets streaming for some fixtures.
@@ -150,14 +150,14 @@ I wrote the python script for this Lambda function in etlGetFixtures.py. I just 
 
 ![](images/requestsLayer.PNG)
 
-####5.3.1 Schedule the Lambda function
+#### 5.3.1 Schedule the Lambda function
 
 I schedule my etlGetFixtures Lambda function using CloudWatch, with a cron expression.
 I schedule this ETL job each Tuesday at 8 AM (GMT) for years 2020 and 2021, with the cron expression "0 8 ? * TUE 2020-2021".
 
 ![](images/triggerEtlGetFixtures.PNG)
 
-###5.4 etlJsonToCsvFixtures and etlGetStatistics jobs
+### 5.4 etlJsonToCsvFixtures and etlGetStatistics jobs
 
 Now that my first job is created and scheduled to get previous week fixtures from API-Football-Beta each Tuesday at 8 AM, I will create a new ETL job with Lambda to process each json file uploaded into the raw-data folder of my data lake, then upload the processed data as a csv file into the processed-data folder.
 
@@ -176,7 +176,7 @@ etlJsonToCsvFixtures layer:
 etlGetStatistics layers:
 ![](images/requestsPandasLayers.PNG)
 
-####5.4.1 Trigger the Lambda functions with S3
+#### 5.4.1 Trigger the Lambda functions with S3
 
 To trigger my Lambda functions each time that an object is putted into my data lake, I have to create event notifications.
 
@@ -188,7 +188,7 @@ etlJsonToCsvFixtures trigger:
 etlGetStatistics trigger:
 ![](images/triggerEtlGetStatistics.PNG)
 
-##6 CloudWatch metrics and logs
+## 6 CloudWatch metrics and logs
 
 On the monitoring screen of a Lambda function, there are some views of several metrics and logs, provided by CloudWatch, the monitoring and observability service on AWS.
 
@@ -208,7 +208,7 @@ Finally, this log group shows me that next week fixtures were processed to csv a
 
 I had to use CloudWatch to troubleshoot my jobs several times for this project.
 
-##7 ETL Glue Jobs
+## 7 ETL Glue Jobs
 
 new user "MyDefaultUserName"
 new role with access to my specific bucket
