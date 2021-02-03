@@ -220,9 +220,11 @@ To do this I create two new folder into my data lake:
 
 Then I create two ETL jobs with Glue:
 - hometeamstatistics (glueJobHomeTeamStatistics.py)
+
 ![](images/glueJobHomeTeamStatisticsDiagram.PNG)
 
 - awayteamstatistics (glueJobAwayTeamStatistics.py)
+
 ![](images/glueJobAwayTeamStatisticsDiagram.PNG)
 
 Finally, I create a new trigger to schedule these jobs each Tuesday at 9 AM (GMT) for years 2020 and 2021, with the cron expression "0 9 ? * TUE 2020-2021".
