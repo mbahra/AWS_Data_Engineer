@@ -1,15 +1,16 @@
-import datetime
-import json
-import csv
 import boto3
+import json
+import urllib.parse
+import datetime
 import uuid
 import io
+import time
 import pandas as pd
-from botocore.exceptions import ClientError
-import urllib.parse
+import requests
 
 s3_client = boto3.client('s3')
-apiKey = 'XXX' # Replace XXX by your API key
+apiKey = 'XXX'  # Replace XXX by your API key
+
 
 def lambda_handler(event, context):
 
@@ -21,10 +22,10 @@ def lambda_handler(event, context):
 
         url = "https://api-football-beta.p.rapidapi.com/fixtures/statistics"
         headers = {
-        'x-rapidapi-key': apiKey,
-        'x-rapidapi-host': "api-football-beta.p.rapidapi.com"
+            'x-rapidapi-key': apiKey,
+            'x-rapidapi-host': "api-football-beta.p.rapidapi.com"
         }
-        querystring = {"fixture":idFixture}
+        querystring = {"fixture": idFixture}
         response = requests.request("GET", url, headers=headers, params=querystring)
         return response.json()
 
@@ -67,10 +68,10 @@ def lambda_handler(event, context):
 
     # Create a dataframe to prepare statistics data ingestion in csv
     df = pd.DataFrame(columns=['idFixture', 'idHomeTeam', 'idAwayTeam',
-                                'shotsOnGoalHomeTeam', 'shotsOnGoalAwayTeam',
-                                'shotsInsideBoxHomeTeam', 'shotsInsideBoxAwayTeam',
-                                'totalShotsHomeTeam', 'totalShotsAwayTeam',
-                                'ballPossessionHomeTeam', 'ballPossessionAwayTeam'])
+                               'shotsOnGoalHomeTeam', 'shotsOnGoalAwayTeam',
+                               'shotsInsideBoxHomeTeam', 'shotsInsideBoxAwayTeam',
+                               'totalShotsHomeTeam', 'totalShotsAwayTeam',
+                               'ballPossessionHomeTeam', 'ballPossessionAwayTeam'])
     # Get statistics for each finished fixtures from API Football Beta
     for fixture in fixturesJson['response']:
         status = fixture['fixture']['status']['long']
@@ -95,11 +96,11 @@ def lambda_handler(event, context):
         totalShotsAwayTeam = awayTeam['statistics'][2]['value']
         ballPossessionHomeTeam = homeTeam['statistics'][9]['value']
         ballPossessionAwayTeam = awayTeam['statistics'][9]['value']
-        row = {'idFixture':idFixture,'idHomeTeam':idHomeTeam, 'idAwayTeam':idAwayTeam,
-                'shotsOnGoalHomeTeam':shotsOnGoalHomeTeam, 'shotsOnGoalAwayTeam':shotsOnGoalAwayTeam,
-                'shotsInsideBoxHomeTeam':shotsInsideBoxHomeTeam, 'shotsInsideBoxAwayTeam':shotsInsideBoxAwayTeam,
-                'totalShotsHomeTeam':totalShotsHomeTeam, 'totalShotsAwayTeam':totalShotsAwayTeam,
-                'ballPossessionHomeTeam':ballPossessionHomeTeam, 'ballPossessionAwayTeam':ballPossessionAwayTeam}
+        row = {'idFixture': idFixture, 'idHomeTeam': idHomeTeam, 'idAwayTeam': idAwayTeam,
+               'shotsOnGoalHomeTeam': shotsOnGoalHomeTeam, 'shotsOnGoalAwayTeam': shotsOnGoalAwayTeam,
+               'shotsInsideBoxHomeTeam': shotsInsideBoxHomeTeam, 'shotsInsideBoxAwayTeam': shotsInsideBoxAwayTeam,
+               'totalShotsHomeTeam': totalShotsHomeTeam, 'totalShotsAwayTeam': totalShotsAwayTeam,
+               'ballPossessionHomeTeam': ballPossessionHomeTeam, 'ballPossessionAwayTeam': ballPossessionAwayTeam}
         df = df.append(row, ignore_index=True)
     # Sleep 2,1 seconds between each statistics request to avoid the 30 requests / minute API Football Beta limitation
         time.sleep(2.1)

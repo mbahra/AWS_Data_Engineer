@@ -1,14 +1,13 @@
-import datetime
-import json
-import csv
 import boto3
+import json
+import urllib.parse
+import datetime
 import uuid
 import io
 import pandas as pd
-from botocore.exceptions import ClientError
-import urllib.parse
 
 s3_client = boto3.client('s3')
+
 
 def lambda_handler(event, context):
 
@@ -34,7 +33,7 @@ def lambda_handler(event, context):
 
         # Process the json object's data to a dataframe
         df = pd.DataFrame(columns=['idFixture', 'status', 'date', 'time',
-                                    'idHomeTeam', 'idAwayTeam', 'goalsHomeTeam', 'goalsAwayTeam'])
+                                   'idHomeTeam', 'idAwayTeam', 'goalsHomeTeam', 'goalsAwayTeam'])
         for fixture in data['response']:
             idFixture = fixture['fixture']['id']
             status = fixture['fixture']['status']['long']
@@ -44,9 +43,9 @@ def lambda_handler(event, context):
             idAwayTeam = fixture['teams']['away']['id']
             goalsHomeTeam = fixture['goals']['home']
             goalsAwayTeam = fixture['goals']['away']
-            row = {'idFixture':idFixture, 'status':status, 'date':date, 'time':time,
-                    'idHomeTeam':idHomeTeam, 'idAwayTeam':idAwayTeam,
-                    'goalsHomeTeam':goalsHomeTeam, 'goalsAwayTeam':goalsAwayTeam}
+            row = {'idFixture': idFixture, 'status': status, 'date': date, 'time': time,
+                   'idHomeTeam': idHomeTeam, 'idAwayTeam': idAwayTeam,
+                   'goalsHomeTeam': goalsHomeTeam, 'goalsAwayTeam': goalsAwayTeam}
             df = df.append(row, ignore_index=True)
         # Convert df to csv and upload it to S3 into the 'processed-data' folder
         uploadCsvToS3(df, bucket, s3Connection, prefix, name)

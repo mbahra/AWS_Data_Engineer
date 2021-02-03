@@ -1,13 +1,13 @@
+import boto3
+import json
 import requests
 import datetime
-import json
-import boto3
 import uuid
-from botocore.exceptions import ClientError
 
 s3_client = boto3.client('s3')
 dataLakeBucketName = 'XXX'  # Replace XXX by your bucket name
 apiKey = 'XXX'  # Replace XXX by your API key
+
 
 def lambda_handler(event, context):
 
@@ -19,10 +19,10 @@ def lambda_handler(event, context):
 
         url = "https://api-football-beta.p.rapidapi.com/fixtures"
         headers = {
-        'x-rapidapi-key': apiKey,
-        'x-rapidapi-host': "api-football-beta.p.rapidapi.com"
+            'x-rapidapi-key': apiKey,
+            'x-rapidapi-host': "api-football-beta.p.rapidapi.com"
         }
-        querystring = {"league":"39", "season":"2020", "from":startDate, "to":endDate}
+        querystring = {"league": "39", "season": "2020", "from": startDate, "to": endDate}
         response = requests.request("GET", url, headers=headers, params=querystring)
         return response.json()
 
