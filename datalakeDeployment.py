@@ -36,18 +36,18 @@ def createBucket(bucketPrefix, s3Connection):
     print("S3 bucket created:", bucketName, currentRegion)
     return bucketName
 
-def fixturesRequest(startDate, endDate):
+def fixturesRequest():
     """
     Sends a request to API Football to get the 2020/2021 english Premier League fixtures
-    from a starting date to an ending date, then returns the response without a json object.
+    from a starting date, then returns the response as a json object.
     """
 
-    url = "https://api-football-beta.p.rapidapi.com/fixtures"
+    url = "https://api-football-v1.p.rapidapi.com/v2/fixtures/league/2790"
+    querystring = {"timezone":"Europe/London"}
     headers = {
-    'x-rapidapi-key': "XXX", # Replace XXX by your API key
-    'x-rapidapi-host': "api-football-beta.p.rapidapi.com"
-    }
-    querystring = {"league":"39", "season":"2020", "from":startDate, "to":endDate}
+        'x-rapidapi-key': "XXX",    # Replace XXX by your API key
+        'x-rapidapi-host': "api-football-v1.p.rapidapi.com"
+        }
     response = requests.request("GET", url, headers=headers, params=querystring)
     return response.json()
 
@@ -57,13 +57,12 @@ def statisticsRequest(idFixture):
     Returns the response as a json object.
     """
 
-    url = "https://api-football-beta.p.rapidapi.com/fixtures/statistics"
+    url = "https://api-football-v1.p.rapidapi.com/v2/statistics/fixture/" + str(idFixture)
     headers = {
-    'x-rapidapi-key': "XXX", # Replace XXX by your API key
-    'x-rapidapi-host': "api-football-beta.p.rapidapi.com"
-    }
-    querystring = {"fixture":idFixture}
-    response = requests.request("GET", url, headers=headers, params=querystring)
+        'x-rapidapi-key': "XXX",    # Replace XXX by your API key
+        'x-rapidapi-host': "api-football-v1.p.rapidapi.com"
+        }
+    response = requests.request("GET", url, headers=headers)
     return response.json()
 
 def uploadJsonToS3(jsonObject, bucket, s3Connection, prefix, name):
@@ -100,15 +99,15 @@ def uploadFixturesCsvToS3(data, bucket, s3Connection, prefix, name):
     # Process the json object's data to a dataframe
     df = pd.DataFrame(columns=['idFixture', 'status', 'date', 'time',
                                 'idHomeTeam', 'idAwayTeam', 'goalsHomeTeam', 'goalsAwayTeam'])
-    for fixture in data['response']:
-        idFixture = fixture['fixture']['id']
-        status = fixture['fixture']['status']['long']
-        date = fixture['fixture']['date'][:10]
-        time = fixture['fixture']['date'][11:16]
-        idHomeTeam = fixture['teams']['home']['id']
-        idAwayTeam = fixture['teams']['away']['id']
-        goalsHomeTeam = fixture['goals']['home']
-        goalsAwayTeam = fixture['goals']['away']
+    for fixture in data['api']['fixtures']:
+        idFixture = fixture['fixture_id']
+        status = fixture['status']
+        date = fixture['event_date'][:10]
+        time = fixture['event_date'][11:16]
+        idHomeTeam = fixture['homeTeam']['team_id']
+        idAwayTeam = fixture['awayTeam']['team_id']
+        goalsHomeTeam = fixture['goalsHomeTeam']
+        goalsAwayTeam = fixture['goalsAwayTeam']
         row = {'idFixture':idFixture, 'status':status, 'date':date, 'time':time,
                 'idHomeTeam':idHomeTeam, 'idAwayTeam':idAwayTeam,
                 'goalsHomeTeam':goalsHomeTeam, 'goalsAwayTeam':goalsAwayTeam}
@@ -129,82 +128,64 @@ def main():
     s3_client.upload_file('teamcodes.csv', dataLakeBucketName, 'processed-data/teamcodes.csv')
     print('processed-data/teamcodes.csv uploaded into ' + dataLakeBucketName)
 
-    ### 3/  Get every previous fixtures, their statistics, and the next week fixtures from API Football
+    ### 3/  Get every previous fixtures and their statistics from API Football
     ###     Upload the json objects to the datalake into the 'raw-data' folder
-    ###     Process each json response received to a dataframe
-    ###     Convert each dataframe to csv
+    ###     Convert the json objects to csv
     ###     Upload csv directly to the datalake into the 'processed-data' folder
 
-    firstFixtureDate = '2021-01-20'
-    yesterdayDate = (datetime.datetime.today() - datetime.timedelta(days=1)).strftime('%Y-%m-%d')
     todayDate = datetime.datetime.today().strftime('%Y-%m-%d')
-    nextWeekDate = (datetime.datetime.today() + datetime.timedelta(days=6)).strftime('%Y-%m-%d')
 
-    # NEXT WEEK FIXTURES
-    # Get next week fixtures from API Football
-    nextWeekFixturesJson = fixturesRequest(todayDate, nextWeekDate)
-    # Upload next week fixtures json object into 'raw-data' folder
-    prefix = 'raw-data/api-football/next-fixtures/'
-    name = ''.join(['nextWeekFixtures-', todayDate, '.json'])
-    uploadJsonToS3(nextWeekFixturesJson, dataLakeBucketName, s3_client, prefix, name)
-    # Process and upload next week fixtures as a csv file into 'processed-data' folder
-    prefix = 'processed-data/api-football/next-fixtures/'
-    name = ''.join(['nextWeekFixtures-', todayDate, '.csv'])
-    uploadFixturesCsvToS3(nextWeekFixturesJson, dataLakeBucketName, s3_client, prefix, name)
-
-    # PREVIOUS FIXTURES
-    # Get previous fixtures from API Football
-    previousFixturesJson = fixturesRequest(firstFixtureDate, yesterdayDate)
-    # Upload previous fixtures json object into 'raw-data' folder
-    prefix = 'raw-data/api-football/previous-fixtures/'
-    name = ''.join(['previousFixtures-', todayDate, '.json'])
-    uploadJsonToS3(previousFixturesJson, dataLakeBucketName, s3_client, prefix, name)
-    # Process and upload previous fixtures as a csv file into 'processed-data' folder
-    prefix = 'processed-data/api-football/previous-fixtures/'
-    name = ''.join(['previousFixtures-', todayDate, '.csv'])
-    uploadFixturesCsvToS3(previousFixturesJson, dataLakeBucketName, s3_client, prefix, name)
+    # FIXTURES
+    # Get fixtures from API Football
+    fixturesJson = fixturesRequest()
+    # Upload fixtures json object into 'raw-data' folder
+    prefix = 'raw-data/api-football/fixtures/'
+    name = ''.join(['fixtures-', todayDate, '.json'])
+    uploadJsonToS3(fixturesJson, dataLakeBucketName, s3_client, prefix, name)
+    # Process and upload fixtures as a csv file into 'processed-data' folder
+    prefix = 'processed-data/api-football/fixtures/'
+    name = ''.join(['fixtures-', todayDate, '.csv'])
+    uploadFixturesCsvToS3(fixturesJson, dataLakeBucketName, s3_client, prefix, name)
 
     # STATISTICS
-    # Create dataframe columns for statistcs data
+    # Create a dataframe to prepare statistics data ingestion in csv
     df = pd.DataFrame(columns=['idFixture', 'idHomeTeam', 'idAwayTeam',
                                 'shotsOnGoalHomeTeam', 'shotsOnGoalAwayTeam',
                                 'shotsInsideBoxHomeTeam', 'shotsInsideBoxAwayTeam',
                                 'totalShotsHomeTeam', 'totalShotsAwayTeam',
                                 'ballPossessionHomeTeam', 'ballPossessionAwayTeam'])
-    # Get statistics for each previous fixtures from API Football
-    for fixture in previousFixturesJson['response']:
-        status = fixture['fixture']['status']['long']
-        if status == 'Match Postponed':
+    # Get statistics for each finished fixtures from API Football
+    # WARNING!!! API Football is free until 100 requests / day, and costs around €0.00450 / request beyond
+    #           As there are 10 fixtures / round, running this script after the 9th round will incur some costs
+    for fixture in fixturesJson['api']['fixtures']:
+        status = fixture['status']
+        if status != 'Match Finished':
             continue
-        idFixture = fixture['fixture']['id']
+        idFixture = fixture['fixture_id']
         statisticsJson = statisticsRequest(idFixture)
     # Upload statistics json object into 'raw-data' folder
         prefix = 'raw-data/api-football/statistics/'
         name = ''.join(['statistics-', str(idFixture), '.json'])
         uploadJsonToS3(statisticsJson, dataLakeBucketName, s3_client, prefix, name)
     # Process each statistics json data to a new dataframe row
-        homeTeam = statisticsJson['response'][0]
-        awayTeam = statisticsJson['response'][1]
-        idHomeTeam = homeTeam['team']['id']
-        idAwayTeam = awayTeam['team']['id']
-        shotsOnGoalHomeTeam = homeTeam['statistics'][0]['value']
-        shotsOnGoalAwayTeam = awayTeam['statistics'][0]['value']
-        shotsInsideBoxHomeTeam = homeTeam['statistics'][4]['value']
-        shotsInsideBoxAwayTeam = awayTeam['statistics'][4]['value']
-        totalShotsHomeTeam = homeTeam['statistics'][2]['value']
-        totalShotsAwayTeam = awayTeam['statistics'][2]['value']
-        ballPossessionHomeTeam = homeTeam['statistics'][9]['value']
-        ballPossessionAwayTeam = awayTeam['statistics'][9]['value']
+        idHomeTeam = fixture['homeTeam']['team_id']
+        idAwayTeam = fixture['awayTeam']['team_id']
+        shotsOnGoalHomeTeam = statisticsJson['api']['statistics']['Shots on Goal']['home']
+        shotsOnGoalAwayTeam = statisticsJson['api']['statistics']['Shots on Goal']['away']
+        shotsInsideBoxHomeTeam = statisticsJson['api']['statistics']['Shots insidebox']['home']
+        shotsInsideBoxAwayTeam = statisticsJson['api']['statistics']['Shots insidebox']['away']
+        totalShotsHomeTeam = statisticsJson['api']['statistics']['Total Shots']['home']
+        totalShotsAwayTeam = statisticsJson['api']['statistics']['Total Shots']['away']
+        ballPossessionHomeTeam = statisticsJson['api']['statistics']['Ball Possession']['home']
+        ballPossessionAwayTeam = statisticsJson['api']['statistics']['Ball Possession']['away']
         row = {'idFixture':idFixture,'idHomeTeam':idHomeTeam, 'idAwayTeam':idAwayTeam,
                 'shotsOnGoalHomeTeam':shotsOnGoalHomeTeam, 'shotsOnGoalAwayTeam':shotsOnGoalAwayTeam,
                 'shotsInsideBoxHomeTeam':shotsInsideBoxHomeTeam, 'shotsInsideBoxAwayTeam':shotsInsideBoxAwayTeam,
                 'totalShotsHomeTeam':totalShotsHomeTeam, 'totalShotsAwayTeam':totalShotsAwayTeam,
                 'ballPossessionHomeTeam':ballPossessionHomeTeam, 'ballPossessionAwayTeam':ballPossessionAwayTeam}
         df = df.append(row, ignore_index=True)
-    # Sleep 3 seconds between each statistics request to avoid the 30 requests / minute API Football limitation
-    # WARNING!!! API Football is free until 100 requests / day, and costs around €0.00450 / request beyond
-    #            If you run this script after the league's 10th round, it will involve cost
-        time.sleep(3)
+    # Sleep 2,1 seconds between each statistics request to avoid the 30 requests / minute API Football limitation
+    time.sleep(2.1)
     # Upload statistics as a csv file into 'processed-data' folder
     prefix = 'processed-data/api-football/statistics/'
     name = ''.join(['statistics-', todayDate, '.csv'])

@@ -51,23 +51,23 @@ def lambda_handler(event, context):
         # Convert df to csv and upload it to S3 into the 'processed-data' folder
         uploadCsvToS3(df, bucket, s3Connection, prefix, name)
 
-    #1 - Get the data lake bucket name
+    # Each time that a fixtures json object is uploaded to the S3 datalake:
+    # Process it and upload it as a csv file to the datalake into the 'processed-data' folder
+
+    # Get the data lake bucket name
     dataLakeBucketName = event['Records'][0]['s3']['bucket']['name']
-
-    #2 - Get the file/key name
+    # Get the file/key name
     key = urllib.parse.unquote_plus(event['Records'][0]['s3']['object']['key'], encoding='utf-8')
-
-    #3 - Fetch the file from S3
+    # Fetch the file from S3
     response = s3_client.get_object(Bucket=dataLakeBucketName, Key=key)
-
-    #4 - Deserialize the file's content
+    # Deserialize the file's content
     text = response["Body"].read().decode()
-    nextFixturesJson = json.loads(text)
+    fixturesJson = json.loads(text)
 
-    #5 - Process and upload next week fixtures as a csv file into 'processed-data' folder
-    prefix = 'processed-data/api-football/next-fixtures/'
+    # Process and upload fixtures as a csv file into 'processed-data' folder
+    prefix = 'processed-data/api-football/fixtures/'
     todayDate = datetime.datetime.today().strftime('%Y-%m-%d')
-    name = ''.join(['nextFixtures-', todayDate, '.csv'])
-    processAndUploadAsCsvToS3(nextFixturesJson, dataLakeBucketName, s3_client, prefix, name)
+    name = ''.join(['fixtures-', todayDate, '.csv'])
+    processAndUploadAsCsvToS3(fixturesJson, dataLakeBucketName, s3_client, prefix, name)
 
-    print('Next week fixtures from API-Football processed to csv successfully!')
+    print('Fixtures from API-Football-Beta processed to csv successfully!')
