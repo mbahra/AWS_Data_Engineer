@@ -210,5 +210,21 @@ I had to use CloudWatch to troubleshoot my jobs several times for this project.
 
 ## 7 ETL Glue Jobs
 
-new user "MyDefaultUserName"
-new role with access to my specific bucket
+In order to run a machine learning algorithm that predicts goals for each team of a fixture, I first have to transform my data into this specific schema:
+
+![](images/teamStatisticsSchema.PNG)
+
+To do this I create two new folder into my data lake:
+- processed-data/api-football/hometeams-fixtures-statistics/
+- processed-data/api-football/awayteams-fixtures-statistics/
+
+Then I create two ETL jobs with Glue:
+- hometeamstatistics (glueJobHomeTeamStatistics.py)
+![](images/glueJobHomeTeamStatisticsDiagram.PNG)
+
+- awayteamstatistics (glueJobAwayTeamStatistics.py)
+![](images/glueJobAwayTeamStatisticsDiagram.PNG)
+
+Finally, I create a new trigger to schedule these jobs each Tuesday at 9 AM (GMT) for years 2020 and 2021, with the cron expression "0 9 ? * TUE 2020-2021".
+
+![](images/glueJobsTrigger.PNG)
