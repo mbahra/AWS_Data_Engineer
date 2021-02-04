@@ -41,9 +41,9 @@ Transform1 = ApplyMapping.apply(frame = Transform0, mappings = [("idfixture", "l
 # Force one partition, so it can save only 1 file
 repartition = Transform1.repartition(1)
 ## @type: DataSink
-## @args: [connection_type = "s3", format = "csv", connection_options = {"path": "s3://dataLakeBucketName/processed-data/api-football/awayteams-fixtures-statistics/", "partitionKeys": []}, transformation_ctx = "DataSink0"]
+## @args: [connection_type = "s3", format = "csv", connection_options = {"path": "s3://dataLakeBucketName/processed-data/api-football/teams-fixtures-statistics/", "partitionKeys": []}, transformation_ctx = "DataSink0"]
 ## @return: DataSink0
 ## @inputs: [frame = Transform1]
 dataLakeBucketName = 'XXX' # Replace XXX by your data lake bucket name
-repartition.toDF().write.mode("overwrite").format("csv").option("header", "true").save("s3://" + dataLakeBucketName + "/processed-data/api-football/awayteams-fixtures-statistics/")
+repartition.toDF().write.mode("append").format("csv").option("header", "true").save("s3://" + dataLakeBucketName + "/processed-data/api-football/teams-fixtures-statistics/")
 job.commit()

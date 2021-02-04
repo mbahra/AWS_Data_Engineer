@@ -214,19 +214,33 @@ In order to run a machine learning algorithm that predicts goals for each team o
 
 ![](images/teamStatisticsSchema.PNG)
 
-To do this I create two new folder into my data lake:
-- processed-data/api-football/hometeams-fixtures-statistics/
-- processed-data/api-football/awayteams-fixtures-statistics/
+To do this I create a new folder into my data lake that I name processed-data/api-football/teams-fixtures-statistics/.
 
 Then I create two ETL jobs with Glue:
-- hometeamstatistics (glueJobHomeTeamStatistics.py)
+- hometeamstatistics (hometeamstatistics.py)
 
 ![](images/glueJobHomeTeamStatisticsDiagram.PNG)
 
-- awayteamstatistics (glueJobAwayTeamStatistics.py)
+- awayteamstatistics (awayteamstatistics.py)
 
 ![](images/glueJobAwayTeamStatisticsDiagram.PNG)
 
 Finally, I create a new trigger to schedule these jobs each Tuesday at 9 AM (GMT) for years 2020 and 2021, with the cron expression "0 9 ? * TUE 2020-2021".
 
 ![](images/glueJobsTrigger.PNG)
+
+Once my Glue jobs are created and scheduled, a new S3 bucket is created to store all the Glue scripts, spark logs and temporary files.
+
+![](images/glueBucket.PNG)
+
+Running the two Glue jobs for the first time processes the data and uploads it to the S3 folder destination.
+To catalog these new data, I run the S3datalake crawler I've created before.
+Thanks to this, my data are now cataloged into my awsdataengineerprojectdatabase.
+
+![](images/teamsFixturesStatistics.PNG)
+
+## 8 Machine Learning with AWS SageMaker
+
+I first create a new SageMaker user, that I name "mydefaultusername".
+
+![](images/sagemakerUser.PNG)
