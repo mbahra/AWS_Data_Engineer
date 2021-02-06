@@ -13,6 +13,12 @@ Because my purpose is focused on the engineering part, the analysis part will be
 
 I will focus on english Barclays Premier League, considering all the teams and matchweeks for the current season (2020/2021).
 
+In order to train a machine learning algorithm I will also upload the previous season (2019/2020) statistics.
+
+Project workflow:
+
+![](images/awsDataEngineerWorkflow.png)
+
 ## 2 Prerequisites
 
 If you want to run this project by yourself, these are the prerequisites:
@@ -56,13 +62,11 @@ Under Cost Management Preferences, select Receive AWS Free Tier Usage Alerts to 
 
 ![](images/datalakeDeployment.png)
 
-To create S3 bucket and upload files into it with running my python scripts locally, I use the boto3 SDK.
+To create S3 bucket and upload files to it with running my python scripts locally, I use the boto3 SDK.
 
-### 4.1 Creation of a new AWS IAM user
+### 4.1 Creation of a new user to use boto3
 
-To make boto3 run against my AWS account, I’ll need to provide some valid credentials. If you already have an IAM user that has full permissions to S3, you can use those user’s credentials (their access key and their secret access key) without needing to create a new user. Otherwise, we have to create a new AWS user and then store the new credentials.
-
-To create a new user, I have to use AWS Identity and Access Management (IAM).
+To make boto3 run against my AWS account, I need to provide some valid credentials. To do this, I have to create a new user using AWS Identity and Access Management (IAM), and then store the new credentials.
 
 I give the user a name (in my case, boto3user), and enable programmatic access to ensure that this user will be able to work with any AWS supported SDK or make separate API calls.
 
@@ -86,17 +90,41 @@ For the default output format, I select json. The different formats are provided
 
 I get football data using API-Football. Here is its documentation: https://www.api-football.com/documentation-v3.
 
-After creating my RapidAPI account and getting my API key (https://rapidapi.com/marketplace), I get the english Barclays Premier League id by sending a request to the APIs. The Barclays Premier League id is 2790 for API-Football and 39 for API-Football-Beta. Now I can write my python script datalakeDeployment.py to get data from API-Football and deploy my data lake by running the script locally.
+After creating my RapidAPI account and getting my API key (https://rapidapi.com/marketplace), I get these english Barclays Premier League ids by sending requests to the APIs:
+- Previous season for API-Football: 524
+- Current season for API-Football: 2790
+- Current season for API-Football-Beta: 39
+
+Then I write my python script datalakeDeployment.py to get data from these APIs and deploy my data lake by running the script locally.
 
 This script create my data lake as an S3 bucket named with a globally unique name to satisfy S3 policy requirements.
 Then it uploads teamcodes.csv to the data lake, into a folder named "processed-data". I made this csv file myself by aggregating the API-Football id, the name, and the team code (for example 'ARS' for Arsenal) of each team. It could be useful to go further in this project by getting some tweets for sentimental analysis.
-After that, the script requests API-Football to get previous fixtures, and their statistics. Data are uploaded in their json raw format as json files to the data lake into the folders "raw-data/api-football/fixtures", and "raw-data/api-football/statistics". Finally, the json data are processed to be uploaded as csv files to the data lake into the folders "processed-data/api-football/fixtures" and "processed-data/api-football/statistics".
+After that, the script requests API-Football APIs to get previous fixtures, and their statistics. Data are uploaded in their json raw format as json files to the data lake into the folders "raw-data/api-football/fixtures", and "raw-data/api-football/statistics". Finally, the json data are processed to be uploaded as csv files to the data lake into the folders "processed-data/api-football/fixtures" and "processed-data/api-football/statistics".
 
 If you want to run the script by yourself, make sure that you filled your API key in place of 'XXX'. Also, pay attention to the API-Football pricing (free until 100 requests per day, around €0.00450 / request beyond). Since the script will send one request to get the fixtures, then another one to each of the finished fixtures to get their statistics, you will begin to pay around €0.00450 / fixture for each fixture after the 99 firsts.
 
-### 4.3 Data lake configuration
+### 4.3 Creation of a new administrator user
 
-Using AWS Lake Formation, I specify my S3 bucket as the data lake location.
+An AWS user is needed to create and manage the data lake.
+While the best practice is to have a data lake administrator who is not an AWS account administrator, I just create a single administrator user to simplify identity and access management for this project.
+I attach to this administrator user the AdministratorAccess permissions policy.
+
+![](images/administratorUser.PNG)
+
+From now, I will always sign in to my AWS account as the Administrator user to create and manage all the stuff in this project.
+
+### 4.4 Data lake configuration
+
+Using AWS Lake Formation, I register my Administrator user as the data lake administrator and the database creator.
+
+![](images/adminAndDatabaseCreator.PNG)
+
+As I plan to access the location using Amazon EMR, I won't use the Lake Formation service-linked role.
+I have to create a new role in order to register my S3 bucket as the location of my data lake.
+I create this role using https://docs.aws.amazon.com/lake-formation/latest/dg/registration-role.html.
+I name it DataLakeRole.
+
+I specify my S3 bucket as the data lake location.
 
 ![](images/datalakeLocation.PNG)
 
@@ -105,13 +133,13 @@ Then, I create a new database named "awsdataengineerprojectdatabase" specifying 
 ![](images/database.PNG)
 
 To catalog the data stored into the data lake, I create a crawler that I name "S3datalake", using AWS Glue, and that I schedule every Tuesday at 10 AM (GMT) for years 2020 and 2021 using the cron expression "0 10 ? * TUE 2020-2021". Pay attention that the time zone used by CloudWatch for cron expressions is GMT.
-Just before, I create for my crawler a new IAM role that I name "GlueRole" with the AdministratorAccess policy.
+Just before, I create for my crawler a new IAM role that I name "GlueRole" with the PowerUserAccess policy.
 
 ![](images/GlueRole.PNG)
 
 ![](images/crawler.PNG)
 
-Once the crawler created, I run it.
+Once the crawler is created, I run it.
 The crawler add 5 tables to awsdataengineerprojectdatabase. These tables contain the schema of my data.
 
 ![](images/databaseTables.PNG)
@@ -142,13 +170,14 @@ If you want more details go on https://medium.com/@melissa_89553/how-to-import-p
 
 ### 5.3 etlGetFixtures job
 
-As I did to deploy the data lake, I want to extract data from API-Football-Beta and upload them to the data lake. I want to extract data about the previous week fixtures, their statistics, and the next week fixtures.
+As I did to deploy the data lake, I want to get fixtures data from API-Football-Beta, upload it to the data lake into the raw-data folder as a json file, then process each of these json files and upload it as a csv file into the processed-data folder.
+I want to get data about the fixtures from the previous week to the next week.
 As for teamcodes.csv, I want to get the next week fixtures to be able to go further in this project by handle tweets streaming for some fixtures.
 
-I create a new python Lambda function that I name etlGetFixtures, giving the LambdaFullAccessToS3 IAM role.
-I wrote the python script for this Lambda function in etlGetFixtures.py. I just have to copy paste the whole script into my new Lambda function specifying my data lake bucket name and my api key, and add the requests layer to my Lambda function. I also set the timeout to 10 seconds instead of 3, to prevent the case where there are a lot of previous week fixtures to request for their statistics.
+I create a new python Lambda function that I name etlGetFixtures, giving it the LambdaFullAccessToS3 IAM role.
+I wrote the python script for this Lambda function in etlGetFixtures.py. I just have to copy paste the whole script into my new Lambda function specifying my data lake bucket name and my api key, and add the requests and pandas layers to my Lambda function. I also set the timeout to 10 seconds instead of 3, to prevent the case where there are a lot of previous week fixtures to request for their statistics.
 
-![](images/requestsLayer.PNG)
+![](images/requestsPandasLayers.PNG)
 
 #### 5.3.1 Schedule the Lambda function
 
@@ -157,35 +186,22 @@ I schedule this ETL job each Tuesday at 8 AM (GMT) for years 2020 and 2021, with
 
 ![](images/triggerEtlGetFixtures.PNG)
 
-### 5.4 etlJsonToCsvFixtures and etlGetStatistics jobs
+### 5.4 etlGetStatistics job
 
-Now that my first job is created and scheduled to get previous week fixtures from API-Football-Beta each Tuesday at 8 AM, I will create a new ETL job with Lambda to process each json file uploaded into the raw-data folder of my data lake, then upload the processed data as a csv file into the processed-data folder.
+Now that my first job is created and scheduled to get previous and next week fixtures from API-Football-Beta each Tuesday at 8 AM, I will create a new ETL job with Lambda to get statistics data for every finished fixtures, upload it as json files into the raw-data folder, then process it and upload it as a csv file into the processed-data folder.
 
-I also want to get statistics for every finished fixtures, upload them as json file into the raw-data folder, and process them to a csv file to upload into the processed-data folder.
+As previously, I just have to create a new Lambda function for this job, giving it the LambdaFullAccessToS3 IAM role, copy paste my python script etlGetStatistics.py, and specify my api key in the script.
 
-As previously, I just have to create a new Lambda function for each of these jobs, giving them the LambdaFullAccessToS3 IAM role, and copy paste my python scripts etlJsonToCsvFixtures.py and etlGetStatistics.py to the corresponding Lambda function.
-For etlGetStatistics, I also have to specify my api key in the script.
+I also set the timeout to 10 seconds instead of 3, to prevent the case where there are a lot of statistics to process.
 
-I set the timeout of these two Lambda functions to 10 seconds instead of 3, to prevent the case where there are a lot of previous week fixtures and statistics to process.
+Finally, I add the requests and pandas layers to my Lambda function.
 
-According to the packages they use, I add to etlJsonToCsvFixtures the pandas layer, and to etlGetStatistics the pandas and requests layers.
+#### 5.4.1 Trigger the Lambda function with S3
 
-etlJsonToCsvFixtures layer:
-![](images/pandasLayer.PNG)
+To trigger my Lambda function each time that an object is putted into my data lake, I have to create event notification.
 
-etlGetStatistics layers:
-![](images/requestsPandasLayers.PNG)
+As shown in my following screenshot, I select the right prefix, suffix, and event type for the trigger.
 
-#### 5.4.1 Trigger the Lambda functions with S3
-
-To trigger my Lambda functions each time that an object is putted into my data lake, I have to create event notifications.
-
-As shown in my following screenshots, I select the right prefix, suffix, and event type for each trigger.
-
-etlJsonToCsvFixtures trigger:
-![](images/triggerEtlJsonToCsvFixtures.PNG)
-
-etlGetStatistics trigger:
 ![](images/triggerEtlGetStatistics.PNG)
 
 ## 6 CloudWatch metrics and logs

@@ -43,7 +43,7 @@ def lambda_handler(event, context):
     def uploadCsvToS3(df, bucket, s3Connection, prefix, name):
         """
         Converts a dataframe to a csv,
-        then uploads the csv file directly to S3 without storing it locally.
+        then uploads the csv file directly to S3.
         """
 
         csvBuffer = io.StringIO()
@@ -55,6 +55,9 @@ def lambda_handler(event, context):
 
     # Each time that a fixtures json object is uploaded to the S3 datalake:
     # Get statistics of all finished fixtures in the json object
+    # Upload the json objects as json files to the datalake into the 'raw-data' folder
+    # Processed and upload the json objects as a csv file to the datalake into the 'processed-data' folder
+
 
     # Get the data lake bucket name
     dataLakeBucketName = event['Records'][0]['s3']['bucket']['name']
