@@ -1,21 +1,20 @@
 # AWS Data Engineer (in progress)
-A simple data engineer project to implement some skills
 
 ## 1 Project's purpose
-I do this project to implement some of my data engineer skills. It could also be a fruitful support in order to discuss in an interview.
+I do this project to implement some of my data engineer skills.
+It could also be a fruitful support in order to discuss in an interview.
 
 For this project I will only use cloud services, especially AWS ones.
 
 For the context, let's imagine that we are in a company which wants to analyze the difference between expected goals and points, and real goals and points for each football team in a same league.
-
-For this project I will create a data lake, where I will store and process data before loading them weekly into a database.
-Because my purpose is focused on the engineering part, the analysis part will be very restricted.
-
 I will focus on english Barclays Premier League, considering all the teams and matchweeks for the current season (2020/2021).
 
-In order to train a machine learning algorithm I will also upload the previous season (2019/2020) statistics.
+I will create a data lake, where I will store and process data weekly in order to make a visualization.
+The purpose is focused on the engineering part, but not on the analysis part.
 
-Project workflow:
+In order to train a machine learning algorithm, I will also upload the previous season (2019/2020) statistics.
+
+General workflow:
 
 ![](images/workflow-awsDataEngineer.png)
 
@@ -62,16 +61,14 @@ Under Cost Management Preferences, select Receive AWS Free Tier Usage Alerts to 
 
 ![](images/workflow-datalakeDeployment.png)
 
-To create S3 bucket and upload files to it with running my python scripts locally, I use the boto3 SDK.
-
 ### 4.1 Creation of a new user to use boto3
 
-To make boto3 run against my AWS account, I need to provide some valid credentials. To do this, I have to create a new user using AWS Identity and Access Management (IAM), and then store the new credentials.
+To create S3 bucket and upload files to it with running my python scripts locally, I use the boto3 SDK.
 
-I give the user a name (in my case, boto3user), and enable programmatic access to ensure that this user will be able to work with any AWS supported SDK or make separate API calls.
-
+After installing boto3, I need to provide some valid credentials to make boto3 run against my AWS account.
+To do this, I have to create a new user using AWS Identity and Access Management (IAM), and then store the new credentials.
+I name the user boto3user, and enable programmatic access to ensure that this user will be able to work with any AWS supported SDK or make separate API calls.
 To keep things simple, I choose the preconfigured AmazonS3FullAccess policy. With this policy, the new user will be able to have full control over S3.
-
 At the last user creation step, a new screen shows the user’s generated credentials. I click on the Download .csv button to make a copy of the credentials.
 
 ![](images/boto3User.PNG)
@@ -84,21 +81,21 @@ I fill in the requested information with the corresponding values from my csv fi
 For the Default region name, I select my region using https://docs.aws.amazon.com/fr_fr/general/latest/gr/rande.html#s3_region. In my case, I am using eu-west-3 (Paris).
 For the default output format, I select json. The different formats are provided at https://docs.aws.amazon.com/fr_fr/cli/latest/userguide/cli-configure-quickstart.html#cli-configure-quickstart-config.
 
-### 4.2 Data lake structure
+### 4.2 Python script
 
-![](images/datalakeStructure.png)
+I deploy my data lake by running my python script (datalakeDeployment.py) locally.
 
-I get football data using API-Football. Here is its documentation: https://www.api-football.com/documentation-v3.
+I get football data using API-Football and API-Football-Beta. Here is their documentations:
+- API-Football: https://www.api-football.com/documentation
+- API-Football-Beta: https://www.api-football.com/documentation-v3.
 
 After creating my RapidAPI account and getting my API key (https://rapidapi.com/marketplace), I get these english Barclays Premier League ids by sending requests to the APIs:
 - Previous season for API-Football: 524
 - Current season for API-Football: 2790
 - Current season for API-Football-Beta: 39
 
-Then I write my python script datalakeDeployment.py to get data from these APIs and deploy my data lake by running the script locally.
-
-This script create my data lake as an S3 bucket named with a globally unique name to satisfy S3 policy requirements.
-Then it uploads teamcodes.csv to the data lake, into a folder named "processed-data". I made this csv file myself by aggregating the API-Football id, the name, and the team code (for example 'ARS' for Arsenal) of each team. It could be useful to go further in this project by getting some tweets for sentimental analysis.
+datalakeDeployment.py creates my data lake as an S3 bucket named with a globally unique name to satisfy S3 policy requirements.
+Then it uploads teamcodes.csv to the data lake, into a folder named "processed-data". I made this csv file by myself by aggregating the API-Football id, the name, and the team code (for example 'ARS' for Arsenal) of each team. It could be useful to go further in this project by getting some tweets for sentimental analysis.
 After that, the script requests API-Football APIs to get previous fixtures, and their statistics. Data are uploaded in their json raw format as json files to the data lake into the folders "raw-data/api-football/fixtures", and "raw-data/api-football/statistics". Finally, the json data are processed to be uploaded as csv files to the data lake into the folders "processed-data/api-football/fixtures" and "processed-data/api-football/statistics".
 
 If you want to run the script by yourself, make sure that you filled your API key in place of 'XXX'. Also, pay attention to the API-Football pricing (free until 100 requests per day, around €0.00450 / request beyond). Since the script will send one request to get the fixtures, then another one to each of the finished fixtures to get their statistics, you will begin to pay around €0.00450 / fixture for each fixture after the 99 firsts.
@@ -119,36 +116,33 @@ Using AWS Lake Formation, I register my Administrator user as the data lake admi
 
 ![](images/adminAndDatabaseCreator.PNG)
 
-As I plan to access the location using Amazon EMR, I won't use the Lake Formation service-linked role.
-I have to create a new role in order to register my S3 bucket as the location of my data lake.
-I create this role using https://docs.aws.amazon.com/lake-formation/latest/dg/registration-role.html.
-I name it DataLakeRole.
-
-I specify my S3 bucket as the data lake location.
+Then, I specify my S3 bucket as the data lake location, using the Lake Formation service-linked role.
 
 ![](images/datalakeLocation.PNG)
 
-Then, I create a new database named "awsdataengineerprojectdatabase" specifying the Amazon S3 path to my bucket.
+Then, I create a new database named "awsdataengineerprojectdatabase" specifying the Amazon S3 path to my bucket and the following permissions.
 
 ![](images/database.PNG)
 
-To catalog the data stored into the data lake, I create a crawler that I name "S3datalake", using AWS Glue, and that I schedule every Tuesday at 8:30 and 9:30 AM (GMT) for years 2020 and 2021 using the cron expression "0 10 ? * TUE 2020-2021". Pay attention that the time zone used by CloudWatch for cron expressions is GMT.
+![](images/databasePermissions.PNG)
+
+To catalog the data stored into the data lake, I create a crawler that I name "S3datalake", using AWS Glue, and that I schedule every Tuesday at 8:30 and 9:30 AM (GMT) for years 2020 and 2021 using the cron expression "30 8,9 ? * TUE 2020-2021". Pay attention at the GMT time zone used by CloudWatch for cron expressions.
 Just before, I create for my crawler a new IAM role that I name "GlueRole" with the PowerUserAccess policy.
 
 ![](images/GlueRole.PNG)
 
 ![](images/crawler.PNG)
 
-Once the crawler is created, I run it.
+Once the crawler created, I run it.
 The crawler add 5 tables to awsdataengineerprojectdatabase. These tables contain the schema of my data.
 
-![](images/databaseTables.PNG)
+![](images/databaseTables1.PNG)
 
 ## 5 ETL jobs with AWS Lambda
 
 ![](images/workflow-etlLambda.png)
 
-With AWS, there are several ways to perform ETL jobs. You can for example use AWS Glue, which is a serverless data integration service, but also AWS Lambda, which is a serverless compute service. For this project I will use them both. I will use AWS Lambda for the firsts ETL jobs I will create, to show two different ways to run a Lambda function automatically: whith a scheduler, and with a trigger from S3.
+With AWS, there are several ways to perform ETL jobs. You can for example use AWS Glue, which is a serverless data integration service, but also AWS Lambda, which is a serverless compute service. For this project I will use them both. I will use AWS Lambda for the firsts ETL jobs I will create, to show two different ways to trigger a Lambda function: whith a scheduler, and with a trigger from S3.
 
 ### 5.1 Lambda role
 
@@ -158,6 +152,8 @@ I first create a new IAM role that I name "LambdaFullAccessToS3" to give AmazonS
 
 ### 5.2 Adding layers to Lambda functions
 
+![](images/requestsPandasLayers.PNG)
+
 In my scripts that I want to run as Lambda functions, I use the requests and pandas packages, which are not directly available in Lambda.
 In order to use any of these packages in a Lambda function, I have to add a layer to the Lambda function. For example, if I have a Lambda function using pandas, I have to add it a pandas layer to allow the pandas package import.
 
@@ -165,7 +161,7 @@ Whenever it is needed, I add the required layer using the Klayers repository on 
 https://github.com/keithrozario/Klayers
 
 For my Lambda functions I have to find the right ARN (AWS Resource Name) inside the deployments folder for python3.8.
-After checking the region mentioned in my Lambda function ARN, on the top-right corner of the Lambda function screen (in my case 'eu-west-3'),I select the corresponding csv file available in the repository.
+After checking the region mentioned in my Lambda function ARN, on the top-right corner of the Lambda function screen (in my case 'eu-west-3'), I select the corresponding csv file available in the repository.
 Finally, I just have to copy paste the ARN of the layer that I need.
 
 If you want more details go on https://medium.com/@melissa_89553/how-to-import-python-packages-in-aws-lambda-pandas-scipy-numpy-bb2c98c974e9.
@@ -176,10 +172,7 @@ As I did to deploy the data lake, I want to get fixtures data from API-Football-
 I want to get data about the fixtures from the previous week to the next week.
 As for teamcodes.csv, I want to get the next week fixtures to be able to go further in this project by handle tweets streaming for some fixtures.
 
-I create a new python Lambda function that I name etlGetFixtures, giving it the LambdaFullAccessToS3 IAM role.
-I wrote the python script for this Lambda function in etlGetFixtures.py. I just have to copy paste the whole script into my new Lambda function specifying my data lake bucket name and my api key, and add the requests and pandas layers to my Lambda function. I also set the timeout to 10 seconds instead of 3, to prevent the case where there are a lot of previous week fixtures to request for their statistics.
-
-![](images/requestsPandasLayers.PNG)
+I create a new python Lambda function that I name etlGetFixtures, giving it the LambdaFullAccessToS3 IAM role. I wrote the python script for this Lambda function in etlGetFixtures.py. I just have to copy paste the whole script into my new Lambda function specifying my data lake bucket name and my API key, and add the requests and pandas layers to my Lambda function. I also set the timeout to 10 seconds instead of 3, to prevent the case where there are a lot of previous week fixtures to process.
 
 #### 5.3.1 Schedule the Lambda function
 
@@ -190,19 +183,13 @@ I schedule this ETL job each Tuesday at 8 AM (GMT) for years 2020 and 2021, with
 
 ### 5.4 etlGetStatistics job
 
-Now that my first job is created and scheduled to get previous and next week fixtures from API-Football-Beta each Tuesday at 8 AM, I will create a new ETL job with Lambda to get statistics data for every finished fixtures, upload it as json files into the raw-data folder, then process it and upload it as a csv file into the processed-data folder.
+Now that my first job is created and scheduled to get previous and next week fixtures from API-Football-Beta each Tuesday at 8 AM, I create a new ETL job with Lambda to get statistics data for each finished fixtures uploaded into the data lake, upload it as json files into the raw-data folder, then process it and upload it as a csv file into the processed-data folder.
 
-As previously, I just have to create a new Lambda function for this job, giving it the LambdaFullAccessToS3 IAM role, copy paste my python script etlGetStatistics.py, and specify my api key in the script.
-
-I also set the timeout to 10 seconds instead of 3, to prevent the case where there are a lot of statistics to process.
-
-Finally, I add the requests and pandas layers to my Lambda function.
+As previously, I just have to create a new Lambda function for this job, giving it the LambdaFullAccessToS3 IAM role, copy paste it my python script etlGetStatistics.py, specify my API key, and add it the requests and pandas layers. I also set the timeout to 1 minute and 30 seconds instead of 3 seconds, to prevent the case where there are a lot of finished fixtures to get statistics for.
 
 #### 5.4.1 Trigger the Lambda function with S3
 
-To trigger my Lambda function each time that an object is putted into my data lake, I have to create event notification.
-
-As shown in my following screenshot, I select the right prefix, suffix, and event type for the trigger.
+To trigger my Lambda function each time that new fixtures are uploaded into my data lake, I have to create an event notification. As shown in my following screenshot, I select the right prefix, suffix, and event type for the trigger.
 
 ![](images/triggerEtlGetStatistics.PNG)
 
@@ -234,7 +221,7 @@ In order to run a machine learning algorithm that predicts goals for each team o
 
 ![](images/teamStatisticsSchema.PNG)
 
-To do this I create a new folder into my data lake that I name processed-data/api-football/teams-fixtures-statistics/.
+To do this I create a new folder into my data lake that I name processed-data/api-football/teams-fixtures-statistics/, and I grant the GlueRole and the "super" permission to my awsdataengineerprojectdatabase tables.
 
 Then I create two ETL jobs with Glue:
 - hometeamstatistics (hometeamstatistics.py)
@@ -253,14 +240,40 @@ Once my Glue jobs are created and scheduled, a new S3 bucket is created to store
 
 ![](images/glueBucket.PNG)
 
-Running the two Glue jobs for the first time processes the data and uploads it to the S3 folder destination.
+I run the two Glue jobs for the first time to process the data and uploads it to the S3 folder destination.
 To catalog these new data, I run the S3datalake crawler I've created before.
 Thanks to this, my data are now cataloged into my awsdataengineerprojectdatabase.
 
 ![](images/teamsFixturesStatistics.PNG)
 
-## 8 Machine Learning with AWS SageMaker
+## 8 xGoalsJob
 
-I first create a new SageMaker user, that I name "mydefaultusername".
+![](images/workflow-xGoalsJob.png)
+
+### 8.1 dropids job
+
+To enable the use of SageMaker Autopilot to automatically build and train a machine learning model which generate an expected goals feature (xGoals), I have to give to SageMaker Autopilot a csv file containing 500 rows minimum, with only the relevant features.
+Hence I create a Glue job (dropids.py) that I name dropids to drop the idfixture and idteam columns of the data uploaded into the teams-fixtures-statistics folder, and upload the data into the sagemaker-autopilot folder.
+
+![](images/glueJobDropIds.PNG)
+
+At this job's output, data follow this schema:
+
+![](images/dropidsSchema.PNG)
+
+### 8.2 xGoals model using SageMaker Autopilot
+
+After running the dropids job then the S3datalake crawler, I create a new SageMaker user, that I name "mydefaultusername", giving it the service role AmazonSageMaker-ExecutionRole, then I click on "Open Studio".
 
 ![](images/sagemakerUser.PNG)
+
+Giving it the input and output data locations, SageMaker Autopilot build, train and tune the xGoals model.
+It also provides two jupyter notebooks:
+- SageMakerAutopilotCandidateDefinitionNotebook.ipynb
+- SageMakerAutopilotDataExplorationNotebook.ipynb
+
+Finally, SageMaker provides the best xGoals model.
+
+![](images/sagemakerAutopilot.PNG)
+
+### 8.3 Batch predictions
