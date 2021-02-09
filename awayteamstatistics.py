@@ -44,6 +44,6 @@ repartition = Transform2.repartition(1)
 ## @args: [connection_type = "s3", format = "csv", connection_options = {"path": "s3://dataLakeBucketName/processed-data/api-football/teams-fixtures-statistics/", "partitionKeys": []}, transformation_ctx = "DataSink0"]
 ## @return: DataSink0
 ## @inputs: [frame = Transform2]
-dataLakeBucketName = 'XXX' # Replace XXX by your data lake bucket name
+dataLakeBucketName = 'XXX'  # Replace XXX by your data lake bucket name
 repartition.toDF().write.mode("append").format("csv").option("header", "true").save("s3://" + dataLakeBucketName + "/processed-data/api-football/teams-fixtures-statistics/")
 job.commit()
