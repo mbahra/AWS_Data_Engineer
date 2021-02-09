@@ -17,7 +17,7 @@ In order to train a machine learning algorithm I will also upload the previous s
 
 Project workflow:
 
-![](images/awsDataEngineerWorkflow.png)
+![](images/workflow-awsDataEngineer.png)
 
 ## 2 Prerequisites
 
@@ -60,7 +60,7 @@ Under Cost Management Preferences, select Receive AWS Free Tier Usage Alerts to 
 
 ## 4 Data lake deployment
 
-![](images/datalakeDeployment.png)
+![](images/workflow-datalakeDeployment.png)
 
 To create S3 bucket and upload files to it with running my python scripts locally, I use the boto3 SDK.
 
@@ -132,7 +132,7 @@ Then, I create a new database named "awsdataengineerprojectdatabase" specifying 
 
 ![](images/database.PNG)
 
-To catalog the data stored into the data lake, I create a crawler that I name "S3datalake", using AWS Glue, and that I schedule every Tuesday at 10 AM (GMT) for years 2020 and 2021 using the cron expression "0 10 ? * TUE 2020-2021". Pay attention that the time zone used by CloudWatch for cron expressions is GMT.
+To catalog the data stored into the data lake, I create a crawler that I name "S3datalake", using AWS Glue, and that I schedule every Tuesday at 8:30 and 9:30 AM (GMT) for years 2020 and 2021 using the cron expression "0 10 ? * TUE 2020-2021". Pay attention that the time zone used by CloudWatch for cron expressions is GMT.
 Just before, I create for my crawler a new IAM role that I name "GlueRole" with the PowerUserAccess policy.
 
 ![](images/GlueRole.PNG)
@@ -145,6 +145,8 @@ The crawler add 5 tables to awsdataengineerprojectdatabase. These tables contain
 ![](images/databaseTables.PNG)
 
 ## 5 ETL jobs with AWS Lambda
+
+![](images/workflow-etlLambda.png)
 
 With AWS, there are several ways to perform ETL jobs. You can for example use AWS Glue, which is a serverless data integration service, but also AWS Lambda, which is a serverless compute service. For this project I will use them both. I will use AWS Lambda for the firsts ETL jobs I will create, to show two different ways to run a Lambda function automatically: whith a scheduler, and with a trigger from S3.
 
@@ -225,6 +227,8 @@ Finally, this log group shows me that next week fixtures were processed to csv a
 I had to use CloudWatch to troubleshoot my jobs several times for this project.
 
 ## 7 ETL Glue Jobs
+
+![](images/workflow-glueJobs.png)
 
 In order to run a machine learning algorithm that predicts goals for each team of a fixture, I first have to transform my data into this specific schema:
 
