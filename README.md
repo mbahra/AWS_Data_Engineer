@@ -278,7 +278,6 @@ Finally, SageMaker provides the best xGoals model.
 
 ## 9 xGoalsJob
 
-<<<<<<< HEAD
 Batch predictions
 
 ![](images/workflow-xGoalsJob.png)
@@ -286,9 +285,3 @@ Batch predictions
 ## 10 RDS MySql database
 
 ![](images/workflow-rdsMySql.png)
-=======
-![](images/workflow-xGoalsJob.png)
-
-
-### 9.3 Batch predictions
->>>>>>> 68e29121f37a2e37f522536a088679ef6de0fa2e
