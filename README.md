@@ -232,7 +232,7 @@ Then I create two ETL jobs with Glue:
 
 ![](images/glueJobAwayTeamStatisticsDiagram.PNG)
 
-Finally, I create a new trigger to schedule these jobs each Tuesday at 9 AM (GMT) for years 2020 and 2021, with the cron expression "0 9 ? * TUE 2020-2021".
+Then, I create a new trigger to schedule these jobs each Tuesday at 9 AM (GMT) for years 2020 and 2021, with the cron expression "0 9 ? * TUE 2020-2021".
 
 ![](images/glueJobsTrigger.PNG)
 
@@ -246,9 +246,9 @@ Thanks to this, my data are now cataloged into my awsdataengineerprojectdatabase
 
 ![](images/teamsFixturesStatistics.PNG)
 
-## 8 xGoalsJob
+## 8 xGoals model
 
-![](images/workflow-xGoalsJob.png)
+![](images/workflow-xGoalsModel.png)
 
 ### 8.1 dropids job
 
@@ -276,4 +276,9 @@ Finally, SageMaker provides the best xGoals model.
 
 ![](images/sagemakerAutopilot.PNG)
 
-### 8.3 Batch predictions
+## 9 xGoalsJob
+
+![](images/workflow-xGoalsJob.png)
+
+
+### 9.3 Batch predictions
