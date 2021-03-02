@@ -1,6 +1,33 @@
 # AWS Data Engineer (in progress)
 
-## 1 Project's purpose
+<!-- TOC -->
+
+  - [1. Project's purpose](#1-projects-purpose)
+  - [2. Prerequisites](#2-prerequisites)
+  - [3. AWS Free Tier usage alerts](#3-aws-free-tier-usage-alerts)
+  - [4. Data lake deployment](#4-data-lake-deployment)
+    - [4.1. Creation of a new user to use boto3](#41-creation-of-a-new-user-to-use-boto3)
+    - [4.2. Python script](#42-python-script)
+    - [4.3. Creation of a new administrator user](#43-creation-of-a-new-administrator-user)
+    - [4.4. Data lake configuration](#44-data-lake-configuration)
+  - [5. ETL jobs with AWS Lambda](#5-etl-jobs-with-aws-lambda)
+    - [5.1. Lambda role](#51-lambda-role)
+    - [5.2. Adding layers to Lambda functions](#52-adding-layers-to-lambda-functions)
+    - [5.3. etlGetFixtures job](#53-etlgetfixtures-job)
+      - [5.3.1. Schedule the Lambda function](#531-schedule-the-lambda-function)
+    - [5.4. etlGetStatistics job](#54-etlgetstatistics-job)
+      - [5.4.1. Trigger the Lambda function with S3](#541-trigger-the-lambda-function-with-s3)
+  - [6. CloudWatch metrics and logs](#6-cloudwatch-metrics-and-logs)
+  - [7. ETL Glue Jobs](#7-etl-glue-jobs)
+  - [8. xGoals model](#8-xgoals-model)
+    - [8.1. dropids job](#81-dropids-job)
+    - [8.2. xGoals model using SageMaker Autopilot](#82-xgoals-model-using-sagemaker-autopilot)
+  - [9. xGoalsJob](#9-xgoalsjob)
+  - [10. RDS MySql database](#10-rds-mysql-database)
+
+<!-- /TOC -->
+
+## 1. Project's purpose
 I do this project to implement some of my data engineer skills.
 It could also be a fruitful support in order to discuss in an interview.
 
@@ -18,7 +45,7 @@ General workflow:
 
 ![](images/workflow-awsDataEngineer.png)
 
-## 2 Prerequisites
+## 2. Prerequisites
 
 If you want to run this project by yourself, these are the prerequisites:
 
@@ -40,13 +67,15 @@ $ pip install requests
 $ pip install boto3
 ```
 
+- MySQL Workbench: https://dev.mysql.com/downloads/workbench/
+
 - A RapidAPI account and key: https://rapidapi.com/marketplace
 
 - A subscription to the "Basic" plan for API-Football: https://rapidapi.com/api-sports/api/api-football/pricing
 
 - A subscription to the "Basic" plan for API-Football-Beta: https://rapidapi.com/api-sports/api/api-football-beta/pricing
 
-## 3 AWS Free Tier usage alerts
+## 3. AWS Free Tier usage alerts
 
 Pay attention to the pricing conditions. The AWS Free Tier conditions are provided here :
 https://aws.amazon.com/free/?nc1=h_ls&all-free-tier.sort-by=item.additionalFields.SortRank&all-free-tier.sort-order=asc
@@ -57,11 +86,11 @@ To opt in to the AWS Free Tier usage alerts, sign in to the AWS Management Conso
 Under Preferences in the navigation pane, choose Billing preferences.
 Under Cost Management Preferences, select Receive AWS Free Tier Usage Alerts to opt in to Free Tier usage alerts. To opt out, clear the Receive AWS Free Tier Usage Alerts check box.
 
-## 4 Data lake deployment
+## 4. Data lake deployment
 
 ![](images/workflow-datalakeDeployment.png)
 
-### 4.1 Creation of a new user to use boto3
+### 4.1. Creation of a new user to use boto3
 
 To create S3 bucket and upload files to it with running my python scripts locally, I use the boto3 SDK.
 
@@ -81,7 +110,7 @@ I fill in the requested information with the corresponding values from my csv fi
 For the Default region name, I select my region using https://docs.aws.amazon.com/fr_fr/general/latest/gr/rande.html#s3_region. In my case, I am using eu-west-3 (Paris).
 For the default output format, I select json. The different formats are provided at https://docs.aws.amazon.com/fr_fr/cli/latest/userguide/cli-configure-quickstart.html#cli-configure-quickstart-config.
 
-### 4.2 Python script
+### 4.2. Python script
 
 I deploy my data lake by running my python script (datalakeDeployment.py) locally.
 
@@ -100,7 +129,7 @@ After that, the script requests API-Football APIs to get previous fixtures, and 
 
 If you want to run the script by yourself, make sure that you filled your API key in place of 'XXX'. Also, pay attention to the API-Football pricing (free until 100 requests per day, around €0.00450 / request beyond). Since the script will send one request to get the fixtures, then another one to each of the finished fixtures to get their statistics, you will begin to pay around €0.00450 / fixture for each fixture after the 99 firsts.
 
-### 4.3 Creation of a new administrator user
+### 4.3. Creation of a new administrator user
 
 An AWS user is needed to create and manage the data lake.
 While the best practice is to have a data lake administrator who is not an AWS account administrator, I just create a single administrator user to simplify identity and access management for this project.
@@ -110,7 +139,7 @@ I attach to this administrator user the AdministratorAccess permissions policy.
 
 From now, I will always sign in to my AWS account as the Administrator user to create and manage all the stuff in this project.
 
-### 4.4 Data lake configuration
+### 4.4. Data lake configuration
 
 Using AWS Lake Formation, I register my Administrator user as the data lake administrator and the database creator.
 
@@ -138,19 +167,19 @@ The crawler add 5 tables to awsdataengineerprojectdatabase. These tables contain
 
 ![](images/databaseTables1.PNG)
 
-## 5 ETL jobs with AWS Lambda
+## 5. ETL jobs with AWS Lambda
 
 ![](images/workflow-etlLambda.png)
 
 With AWS, there are several ways to perform ETL jobs. You can for example use AWS Glue, which is a serverless data integration service, but also AWS Lambda, which is a serverless compute service. For this project I will use them both. I will use AWS Lambda for the firsts ETL jobs I will create, to show two different ways to trigger a Lambda function: whith a scheduler, and with a trigger from S3.
 
-### 5.1 Lambda role
+### 5.1. Lambda role
 
 I first create a new IAM role that I name "LambdaFullAccessToS3" to give AmazonS3FullAccess and AWSLambdaBasicExecutionRole permissions to my Lambda functions.
 
 ![](images/LambdaRole.PNG)
 
-### 5.2 Adding layers to Lambda functions
+### 5.2. Adding layers to Lambda functions
 
 ![](images/requestsPandasLayers.PNG)
 
@@ -166,7 +195,7 @@ Finally, I just have to copy paste the ARN of the layer that I need.
 
 If you want more details go on https://medium.com/@melissa_89553/how-to-import-python-packages-in-aws-lambda-pandas-scipy-numpy-bb2c98c974e9.
 
-### 5.3 etlGetFixtures job
+### 5.3. etlGetFixtures job
 
 As I did to deploy the data lake, I want to get fixtures data from API-Football-Beta, upload it to the data lake into the raw-data folder as a json file, then process each of these json files and upload it as a csv file into the processed-data folder.
 I want to get data about the fixtures from the previous week to the next week.
@@ -174,26 +203,26 @@ As for teamcodes.csv, I want to get the next week fixtures to be able to go furt
 
 I create a new python Lambda function that I name etlGetFixtures, giving it the LambdaFullAccessToS3 IAM role. I wrote the python script for this Lambda function in etlGetFixtures.py. I just have to copy paste the whole script into my new Lambda function specifying my data lake bucket name and my API key, and add the requests and pandas layers to my Lambda function. I also set the timeout to 10 seconds instead of 3, to prevent the case where there are a lot of previous week fixtures to process.
 
-#### 5.3.1 Schedule the Lambda function
+#### 5.3.1. Schedule the Lambda function
 
 I schedule my etlGetFixtures Lambda function using CloudWatch, with a cron expression.
 I schedule this ETL job each Tuesday at 8 AM (GMT) for years 2020 and 2021, with the cron expression "0 8 ? * TUE 2020-2021".
 
 ![](images/triggerEtlGetFixtures.PNG)
 
-### 5.4 etlGetStatistics job
+### 5.4. etlGetStatistics job
 
 Now that my first job is created and scheduled to get previous and next week fixtures from API-Football-Beta each Tuesday at 8 AM, I create a new ETL job with Lambda to get statistics data for each finished fixtures uploaded into the data lake, upload it as json files into the raw-data folder, then process it and upload it as a csv file into the processed-data folder.
 
 As previously, I just have to create a new Lambda function for this job, giving it the LambdaFullAccessToS3 IAM role, copy paste it my python script etlGetStatistics.py, specify my API key, and add it the requests and pandas layers. I also set the timeout to 1 minute and 30 seconds instead of 3 seconds, to prevent the case where there are a lot of finished fixtures to get statistics for.
 
-#### 5.4.1 Trigger the Lambda function with S3
+#### 5.4.1. Trigger the Lambda function with S3
 
 To trigger my Lambda function each time that new fixtures are uploaded into my data lake, I have to create an event notification. As shown in my following screenshot, I select the right prefix, suffix, and event type for the trigger.
 
 ![](images/triggerEtlGetStatistics.PNG)
 
-## 6 CloudWatch metrics and logs
+## 6. CloudWatch metrics and logs
 
 On the monitoring screen of a Lambda function, there are some views of several metrics and logs, provided by CloudWatch, the monitoring and observability service on AWS.
 
@@ -213,7 +242,7 @@ Finally, this log group shows me that next week fixtures were processed to csv a
 
 I had to use CloudWatch to troubleshoot my jobs several times for this project.
 
-## 7 ETL Glue Jobs
+## 7. ETL Glue Jobs
 
 ![](images/workflow-glueJobs.png)
 
@@ -246,11 +275,11 @@ Thanks to this, my data are now cataloged into my awsdataengineerprojectdatabase
 
 ![](images/teamsFixturesStatistics.PNG)
 
-## 8 xGoals model
+## 8. xGoals model
 
 ![](images/workflow-xGoalsModel.png)
 
-### 8.1 dropids job
+### 8.1. dropids job
 
 To enable the use of SageMaker Autopilot to automatically build and train a machine learning model which generate an expected goals feature (xGoals), I have to give to SageMaker Autopilot a csv file containing 500 rows minimum, with only the relevant features.
 Hence I create a Glue job (dropids.py) that I name dropids to drop the idfixture and idteam columns of the data uploaded into the teams-fixtures-statistics folder, and upload the data into the sagemaker-autopilot folder.
@@ -261,7 +290,7 @@ At this job's output, data follow this schema:
 
 ![](images/dropidsSchema.PNG)
 
-### 8.2 xGoals model using SageMaker Autopilot
+### 8.2. xGoals model using SageMaker Autopilot
 
 After running the dropids job then the S3datalake crawler, I create a new SageMaker user, that I name "mydefaultusername", giving it the service role AmazonSageMaker-ExecutionRole, then I click on "Open Studio".
 
@@ -276,12 +305,73 @@ Finally, SageMaker provides the best xGoals model.
 
 ![](images/sagemakerAutopilot.PNG)
 
-## 9 xGoalsJob
-
-Batch predictions
+## 9. xGoals job
 
 ![](images/workflow-xGoalsJob.png)
 
-## 10 RDS MySql database
+To get xGoals weekly for each team of each fixture, I use batch transform because it allows me to get inferences for an entire dataset.
+
+To perform batch transform jobs, I create a Lambda function that I name "etlGetXGoals", giving it the LambdaRole with the required permissions.
+I trigger this Lambda function each time that a dataset is uploaded to the teams-fixtures-statistics folder.
+
+![](images/triggerEtlGetXGoals.PNG)
+
+I copy paste the python script etlGetXGoals.py into the Lambda function, replacing "XXX" by my model name.
+
+In the SageMaker dashboard, I can see every batch transform jobs with their characteristics.
+
+![](images/batchTransformJobs.PNG)
+
+At the output directory of these batch transform jobs, named "xGoals-predictions", datasets are saved with just three features: the fixture id, the team id, and the xGoals prediction.
+
+For information, the following diagram shows the workflow for associating inferences with input records when a batch transform job is performing:
+
+![](images/batchTransformDataProcessing.png)
+
+## 10. RDS MySql database
 
 ![](images/workflow-rdsMySql.png)
+
+### 10.1. Creation of a MySql database with RDS
+
+In order to store my data in a SQL database, I use RDS, the Amazon Relational Database Service.
+
+![](images/rdsDb.PNG)
+
+I create a MySql database, using the MySql 5.7.13 version to avoid some Glue connection issues.
+I also enable the public access to the database to create tables from my local environment.
+
+Once the RDS database is running, I use MySQL Workbench to create tables. I copy paste fixtures.sql and teams.sql to create fixtures and teams tables with these SQL requests.
+
+### 10.2. Creation of a Glue connection
+
+In order to send data to my RDS database using a Glue job, I first have to create a connection to my RDS database.
+
+I set up the inbound and outbound rules of my RDS database's security group using the "To set up access for Amazon RDS data stores" part of the following link:
+https://docs.aws.amazon.com/glue/latest/dg/setup-vpc-for-glue-access.html
+
+Then, I create VPC endpoints to set up acces to S3.
+
+![](images/vpcEndpoints.PNG)
+
+Finally, I create a Glue connection to my database.
+
+![](images/glueConnection.PNG)
+
+### 10.3. Sending data to the RDS database
+
+To create in Glue the fixtures and teams tables of my RDS database, I create and run a new crawler.
+I also schedule it to run each Tuesday at 10:30 AM (GMT) for years 2020 and 2021 using the cron expression "30 10 ? * TUE 2020-2021".
+
+![](images/crawlerMySqlDb.PNG)
+
+Then, I create two new Glue jobs to send data to the fixtures and teams table: "mysqldbingestion" (mysqldbingestion.py) and "teamsmysqldbingestion" (teamsmysqldbingestion.py).
+I schedule the mysqldbingestion job every Tuesday at 10:00 AM (GMT) for years 2020 and 2021 using the cron expression "00 10 ? * TUE 2020-2021".
+
+Once these jobs ran, I can see data in my RDS database using MySQL Workbench.
+
+![](images/mysqlFixtures.PNG)
+
+![](images/mysqlTeams.PNG)
+
+At this point, I have a MySQL RDS database weekly updated with finished fixtures data including expected goals.
