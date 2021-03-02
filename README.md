@@ -10,7 +10,7 @@
     - [4.2. Python script](#42-python-script)
     - [4.3. Creation of a new administrator user](#43-creation-of-a-new-administrator-user)
     - [4.4. Data lake configuration](#44-data-lake-configuration)
-  - [5. ETL jobs with AWS Lambda](#5-etl-jobs-with-aws-lambda)
+  - [5. Get data from API Football to S3 using Lambda](#5-get-data-from-api-football-to-s3-using-lambda)
     - [5.1. Lambda role](#51-lambda-role)
     - [5.2. Adding layers to Lambda functions](#52-adding-layers-to-lambda-functions)
     - [5.3. etlGetFixtures job](#53-etlgetfixtures-job)
@@ -18,12 +18,15 @@
     - [5.4. etlGetStatistics job](#54-etlgetstatistics-job)
       - [5.4.1. Trigger the Lambda function with S3](#541-trigger-the-lambda-function-with-s3)
   - [6. CloudWatch metrics and logs](#6-cloudwatch-metrics-and-logs)
-  - [7. ETL Glue Jobs](#7-etl-glue-jobs)
+  - [7. Glue jobs for feature engineering](#7-glue-jobs-for-feature-engineering)
   - [8. xGoals model](#8-xgoals-model)
     - [8.1. dropids job](#81-dropids-job)
     - [8.2. xGoals model using SageMaker Autopilot](#82-xgoals-model-using-sagemaker-autopilot)
-  - [9. xGoalsJob](#9-xgoalsjob)
+  - [9. xGoals job](#9-xgoals-job)
   - [10. RDS MySql database](#10-rds-mysql-database)
+    - [10.1. Creation of a MySql database with RDS](#101-creation-of-a-mysql-database-with-rds)
+    - [10.2. Creation of a Glue connection](#102-creation-of-a-glue-connection)
+    - [10.3. Sending data to the RDS database](#103-sending-data-to-the-rds-database)
 
 <!-- /TOC -->
 
@@ -167,7 +170,7 @@ The crawler add 5 tables to awsdataengineerprojectdatabase. These tables contain
 
 ![](images/databaseTables1.PNG)
 
-## 5. ETL jobs with AWS Lambda
+## 5. Get data from API Football to S3 using Lambda
 
 ![](images/workflow-etlLambda.png)
 
@@ -242,7 +245,7 @@ Finally, this log group shows me that next week fixtures were processed to csv a
 
 I had to use CloudWatch to troubleshoot my jobs several times for this project.
 
-## 7. ETL Glue Jobs
+## 7. Glue jobs for feature engineering
 
 ![](images/workflow-glueJobs.png)
 
@@ -375,3 +378,5 @@ Once these jobs ran, I can see data in my RDS database using MySQL Workbench.
 ![](images/mysqlTeams.PNG)
 
 At this point, I have a MySQL RDS database weekly updated with finished fixtures data including expected goals.
+
+Now I can check that everything is running well or troubleshoot my pipelines if it's needed, using CloudWatch logs.
